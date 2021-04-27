@@ -144,7 +144,7 @@ def get_spectrogram(wave_data, win_size=1024, overlap=0.5, mode='normal', scale=
         # amplitude, phase = librosa.magphase(cs)
         # amplitude -> db
         # spec = librosa.amplitude_to_db(np.abs(spec))
-        spec = np.log10(np.abs(spec)) * 10
+        spec = 10*np.log10(np.abs(spec))
 
     return spec
 
