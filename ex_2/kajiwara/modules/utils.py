@@ -39,7 +39,8 @@ def plot_phase_and_frequency_characteristic(data, sr, is_show=False, is_save=Tru
     data: array
     '''
 
-    assert is_save and (result_path != None)
+    if is_save:
+        assert (result_path != None)
 
     fig, ax = plt.subplots(nrows=2)
     plt.subplots_adjust(wspace=0.4, hspace=0.6)
@@ -85,7 +86,8 @@ def plot_wave_and_spec(wave_data, spec_data, sr, is_show=False, is_save=True, re
         path to save result data
     '''
 
-    assert is_save and (result_path != None)
+    if is_save:
+        assert (result_path != None)
 
     fig, ax = plt.subplots(nrows=2)
 
