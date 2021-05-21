@@ -11,7 +11,7 @@ class LinearRegression:
         self.v_num = 0
         self.coef = None
 
-    def fit(self, X, y, lam=1.0, sample_weight=None):
+    def fit(self, X, y, lam=1.0, regularization=True, sample_weight=None):
         '''
         Fit linear model.
 
@@ -25,6 +25,8 @@ class LinearRegression:
             Individual weights for each sample
         lam : float
             hyper parameter for regularization
+        regularization : bool
+            adding l2 reguration (redge) or not
 
         Returns
         -------
@@ -40,7 +42,10 @@ class LinearRegression:
         #     p = X**i
         #     phi[:, i] = p.ravel()
 
-        c = lam * np.eye(phi.shape[1])
+        c = 0
+        if regularization:
+            c = lam * np.eye(phi.shape[1])
+
         A = np.dot(phi.T, phi) + c
         B = np.dot(phi.T, y)
         self.coef = np.dot(np.linalg.inv(A), B)
@@ -62,6 +67,8 @@ class LinearRegression:
         pred : array
             prediction
         '''
+
+        assert self.coef is not None, 'please fit first'
 
         pred = []
 
