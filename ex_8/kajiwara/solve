@@ -2,9 +2,12 @@
 
 datas=('../data1.pickle' '../data2.pickle' '../data3.pickle' '../data4.pickle')
 
+timestamp=$(date "+%Y%m%d%H%M%S")
+echo 'timestamp: ' $timestamp
+
 for i in ${datas[@]}
 do
     echo 'processing' $i
-    python main.py $i
+    python main.py $i -ts $timestamp
     echo 'done'
 done

@@ -14,12 +14,15 @@ TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
 
 def main(args):
-    if args.result_path:
-        result_path = Path(args.result_path)
+    if args.timestamp is None:
         timestamp = datetime.now().strftime(TIME_TEMPLATE)
-        result_path = result_path/timestamp
-        if not result_path.exists():
-            result_path.mkdir(parents=True)
+    else:
+        timestamp = args.timestamp
+
+    result_path = Path(args.result_path)
+    result_path = result_path/timestamp
+    if not result_path.exists():
+        result_path.mkdir(parents=True)
 
     data_path = Path(args.data)
     data = np.load(data_path, allow_pickle=True)
@@ -65,7 +68,7 @@ def main(args):
     ax1.set_xlabel("pred", fontsize=15)
     ax1.set_ylabel("answer", fontsize=15)
     sns.heatmap(viterbi_cm, square=True, cbar=True, annot=True, cmap='Blues', ax=ax2)
-    ax2.set_title(f"{data_path.stem} viterbi\n acc" {viterbi_acc}", fontsize=15)
+    ax2.set_title(f"{data_path.stem} viterbi\n acc: {viterbi_acc}", fontsize=15)
     ax2.set_xlabel("pred", fontsize=15)
     ax2.set_ylabel("answer", fontsize=15)
     plt.savefig(result_path / f'{data_path.stem}.png')
@@ -78,6 +81,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('data', help='path to data (pickle format only)')
     parser.add_argument('-rs', '--result-path', default='./result', help='path to save the result')
+    parser.add_argument('-ts', '--timestamp', default=None, help='timestamp')
 
     args = parser.parse_args()
 
