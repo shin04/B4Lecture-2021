@@ -2,13 +2,49 @@ import numpy as np
 
 
 class HMM():
+    """
+    Hidden Markov Model
+
+    Attributes
+    ----------
+    pi : ndarray (n_states, )
+        An aray of probability of initial state.
+    A : ndarray (n_state, n_state)
+        Transition matrix。
+    B : ndarray (n_state, c_symbols)
+        Output matrix of elements in each state。
+    """
+
     def __init__(self, pi: np.array, A: np.array, B: np.array) -> None:
+        """
+        Parameters
+        ----------
+        pi : ndarray (n_states, )
+            An aray of probability of initial state.
+        A : ndarray (n_state, n_state)
+            Transition matrix。
+        B : ndarray (n_state, c_symbols)
+            Output matrix of elements in each state。
+        """
+
         self.pi = pi
         self.A = A
         self.B = B
         self.n_status = A.shape[0]
 
     def forward(self, outputs: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        outputs : ndarray (n_samples, l_series)
+            A list of output series.
+
+        Returns
+        -------
+        prob : ndarray (n_samples,)
+            Observation probability.
+        """
+
         n_samples = outputs.shape[0]
         l_series = outputs.shape[1]
 
@@ -31,6 +67,18 @@ class HMM():
         return prob
 
     def viterbi(self, outputs: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        outputs : ndarray (n_samples, l_series)
+            A list of output series.
+
+        Returns
+        -------
+        prob : ndarray (n_samples,)
+            Observation probability.
+        """
+
         n_samples = outputs.shape[0]
         l_series = outputs.shape[1]
 

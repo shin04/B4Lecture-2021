@@ -4,7 +4,6 @@ from pathlib import Path
 from datetime import datetime
 
 import numpy as np
-# import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, accuracy_score
@@ -15,6 +14,7 @@ TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
 
 def main(args):
+    """setting result path"""
     if args.timestamp is None:
         timestamp = datetime.now().strftime(TIME_TEMPLATE)
     else:
@@ -25,6 +25,7 @@ def main(args):
     if not result_path.exists():
         result_path.mkdir(parents=True)
 
+    """loading data"""
     data_path = Path(args.data)
     data = np.load(data_path, allow_pickle=True)
 
@@ -39,6 +40,7 @@ def main(args):
     n_models = PIs.shape[0]
     n_samples = outputs.shape[0]
 
+    """hmm"""
     hmms = []
     for n in range(n_models):
         pi = np.transpose(PIs[n], axes=(1, 0))[0]
@@ -65,9 +67,11 @@ def main(args):
     print(f'process time (forward): {sum(forward_pro_times)/len(forward_pro_times)}')
     print(f'process time (viterbi): {sum(viterbi_pro_times)/len(viterbi_pro_times)}')
 
+    """predict"""
     forward_pred = np.argmax(forward_prob_by_model, axis=0)
     viterbi_pred = np.argmax(viterbi_prob_by_model, axis=0)
 
+    """result"""
     forward_acc = accuracy_score(answer_models, forward_pred)
     viterbi_acc = accuracy_score(answer_models, viterbi_pred)
 
