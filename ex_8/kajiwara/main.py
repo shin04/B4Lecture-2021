@@ -6,7 +6,7 @@ import numpy as np
 # import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
 
 from hmm import HMM
 
@@ -53,16 +53,19 @@ def main(args):
     forward_pred = np.argmax(forward_prob_by_model, axis=0)
     viterbi_pred = np.argmax(viterbi_prob_by_model, axis=0)
 
+    forward_acc = accuracy_score(answer_models, forward_pred)
+    viterbi_acc = accuracy_score(answer_models, viterbi_pred)
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
     fig.suptitle(f"{data_path.stem}", fontsize=20)
     forward_cm = confusion_matrix(answer_models, forward_pred)
     viterbi_cm = confusion_matrix(answer_models, viterbi_pred)
     sns.heatmap(forward_cm, square=True, cbar=True, annot=True, cmap='Blues', ax=ax1)
-    ax1.set_title(f"{data_path.stem} forward", fontsize=15)
+    ax1.set_title(f"{data_path.stem} forward\n acc: {forward_acc}", fontsize=15)
     ax1.set_xlabel("pred", fontsize=15)
     ax1.set_ylabel("answer", fontsize=15)
     sns.heatmap(viterbi_cm, square=True, cbar=True, annot=True, cmap='Blues', ax=ax2)
-    ax2.set_title(f"{data_path.stem} viterbi", fontsize=15)
+    ax2.set_title(f"{data_path.stem} viterbi\n acc" {viterbi_acc}", fontsize=15)
     ax2.set_xlabel("pred", fontsize=15)
     ax2.set_ylabel("answer", fontsize=15)
     plt.savefig(result_path / f'{data_path.stem}.png')
