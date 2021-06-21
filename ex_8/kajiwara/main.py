@@ -1,4 +1,5 @@
 import argparse
+import time
 from pathlib import Path
 from datetime import datetime
 
@@ -47,11 +48,22 @@ def main(args):
 
     forward_prob_by_model = np.zeros((n_models, n_samples))
     viterbi_prob_by_model = np.zeros((n_models, n_samples))
+    forward_pro_times = []
+    viterbi_pro_times = []
     for i, hmm in enumerate(hmms):
+        start = time.perf_counter()
         forward_prob = hmm.forward(outputs)
+        forward_pro_times.append(time.perf_counter() - start)
+
+        start = time.perf_counter()
         viterbi_prob = hmm.viterbi(outputs)
+        viterbi_pro_times.append(time.perf_counter() - start)
+
         forward_prob_by_model[i] = forward_prob
         viterbi_prob_by_model[i] = viterbi_prob
+
+    print(f'process time (forward): {sum(forward_pro_times)/len(forward_pro_times)}')
+    print(f'process time (viterbi): {sum(viterbi_pro_times)/len(viterbi_pro_times)}')
 
     forward_pred = np.argmax(forward_prob_by_model, axis=0)
     viterbi_pred = np.argmax(viterbi_prob_by_model, axis=0)
