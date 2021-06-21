@@ -86,18 +86,18 @@ class HMM():
         for i in range(n_samples):
             o = outputs[i]
             v = np.zeros((l_series, self.n_status))
-            # v[0, :] = np.log(pi*B[:, o[0]])
-            v[0, :] = self.pi*self.B[:, o[0]]
+            v[0, :] = np.log(self.pi*self.B[:, o[0]])
+            # v[0, :] = self.pi*self.B[:, o[0]]
             w = np.zeros((l_series-1, self.n_status))
 
             for t in range(1, l_series):
                 for j in range(self.n_status):
-                    # prob = v[t-1] + np.log((A[:,j]*B[j,o[t]]))
-                    t_prob = v[t-1] @ (self.A[:, j]*self.B[j, o[t]])
+                    t_prob = v[t-1] + np.log((self.A[:, j]*self.B[j, o[t]]))
+                    # t_prob = v[t-1] @ (self.A[:, j]*self.B[j, o[t]])
                     w[t-1, j] = np.argmax(t_prob)
                     v[t, j] = np.max(t_prob)
 
-            vs[i] = v
+            vs[i] = np.max(v[-1])
 
         prob = np.sum(vs[:, -1, :], axis=1)
 
