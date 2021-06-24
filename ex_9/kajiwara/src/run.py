@@ -13,7 +13,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import FSDDataset
-from model import BaseModel, ConformerModel
+from model import BaseModel, ConformerModel, GRUModel
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -91,7 +91,7 @@ def valid(validloader, device, model, criterion):
 def run(cfg):
     """set config"""
     path_cfg = cfg['path']
-    # preprocess_cfg = cfg['preprocess']
+    audio_cfg = cfg['audio']
     train_cfg = cfg['training']
 
     """set path"""
@@ -119,25 +119,37 @@ def run(cfg):
 
     """set parameters"""
     device = torch.device(cfg['device'])
+    kfold = train_cfg['kfold']
     n_epoch = train_cfg['n_epoch']
     batch_size = train_cfg['batch_size']
     lr = train_cfg['lr']
+
+    win_size_rate = audio_cfg['win_size_rate']
+    overlap = audio_cfg['overlap']
+    n_mels = audio_cfg['n_mels']
 
     writer = SummaryWriter(log_dir=log_path)
 
     print('PARAMETERS')
     print(f'device: {device}')
+    print(f'kfold: {kfold}')
     print(f'n_epoch: {n_epoch}')
     print(f'batch_size: {batch_size}')
     print(f'lr: {lr}')
+    print(f'win_size_rate: {win_size_rate}')
+    print(f'overlap: {overlap}')
+    print(f'n_mels: {n_mels}')
 
     """training and validation"""
     dataset = FSDDataset(
         audio_path=audio_path,
         metadata_path=meta_path,
+        win_size_rate=win_size_rate,
+        overlap=overlap,
+        n_mels=n_mels
     )
     idxes = [i for i in range(len(dataset))]
-    kf = KFold(n_splits=3)
+    kf = KFold(n_splits=kfold)
     preds_by_fold = []
 
     for k_fold, (tr_idx, val_idx) in enumerate(kf.split(idxes)):
@@ -152,7 +164,8 @@ def run(cfg):
             validset, batch_size=batch_size, shuffle=True, pin_memory=True)
 
         """prepare model"""
-        model = ConformerModel().cuda()
+        # model = ConformerModel().cuda()
+        model = GRUModel().cuda()
 
         """prepare optimizer and loss function"""
         optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -182,7 +195,10 @@ def run(cfg):
         testset = FSDDataset(
             audio_path=audio_path,
             metadata_path=test_metadata_path,
-            training=False
+            training=False,
+            win_size_rate=win_size_rate,
+            overlap=overlap,
+            n_mels=n_mels
         )
         testloader = DataLoader(
             testset, batch_size=16, pin_memory=True)

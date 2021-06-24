@@ -7,12 +7,13 @@ path:
   tensorboard: /work/log/tensorboard
   result: /work/results
 
-preprocess:
-  audio_crop_size: 3
-  n_mels: 80
-  freq_shift_size: 20
+audio:
+  win_size_rate: 0.05 # winsize = win_size_rate * sr
+  overlap: 0.5
+  n_mels: 16
 
 training:
+  kfold: 3
   n_epoch: 100
   batch_size: 256
   lr: 0.001

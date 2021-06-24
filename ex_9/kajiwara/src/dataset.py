@@ -23,9 +23,13 @@ def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: in
 
 
 class FSDDataset(Dataset):
-    def __init__(self, audio_path: str, metadata_path: str, training=True):
+    def __init__(self, audio_path: str, metadata_path: str, win_size_rate: float, overlap: float, n_mels: int, training=True):
         self.training = training
         self.audio_path = Path(audio_path)
+
+        self.win_size_rate = win_size_rate
+        self.overlap = overlap
+        self.n_mels = n_mels
 
         df = pd.read_csv(Path(metadata_path))
         self.audio_names = df['path'].values
@@ -45,11 +49,10 @@ class FSDDataset(Dataset):
                 [0] * (int(1.0*sr) - len(waveform))))
         else:
             waveform = waveform[:int(1.0*sr)]
-        win_size = int(sr*0.025)
-        overlap = 0.4
-        n_mels = 64
+
+        win_size = int(self.win_size_rate * sr)
         feature = mel_spec(waveform, sr, win_size,
-                           int(win_size*overlap), n_mels)
+                           int(win_size*self.overlap), self.n_mels)
 
         if self.training:
             return np.float32(feature.T[np.newaxis, :, :]), self.labels[idx]

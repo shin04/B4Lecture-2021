@@ -23,9 +23,9 @@ class SpecAugBlock(nn.Module):
 
         # Spec augmenter
         self.spec_augmenter = SpecAugmentation(
-            time_drop_width=64, time_stripes_num=2, freq_drop_width=8, freq_stripes_num=2)
+            time_drop_width=16, time_stripes_num=2, freq_drop_width=8, freq_stripes_num=2)
 
-        self.batch_norm = nn.BatchNorm2d(64)
+        self.batch_norm = nn.BatchNorm2d(16)
 
     def forward(self, input):
         """
@@ -171,6 +171,34 @@ class ConformerModel(nn.Module):
         return output
 
 
+class GRUModel(nn.Module):
+    def __init__(self, training=True):
+        super(GRUModel, self).__init__()
+
+        self.training = training
+
+        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
+
+        self.rnn_layer1 = nn.GRU(16, 128, 2, dropout=0.2)
+
+        self.output_layer = nn.Linear(41*128, 10, bias=True)
+
+    def forward(self, input):
+        """
+        Input: (batch_size, data_length)
+        """
+
+        x = self.spec_aug_block(input)
+        x = x.squeeze(1)
+
+        x = self.rnn_layer1(x)[0]
+
+        x = x.view(x.size()[0], -1)
+        output = self.output_layer(x)
+
+        return output
+
+
 if __name__ == '__main__':
     batch_audio = torch.empty(32, 1, 100, 64).uniform_(-1, 1).cuda()
     # spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64).cuda()
@@ -179,6 +207,7 @@ if __name__ == '__main__':
     # model = BaseModel().cuda()
     # print(model(batch_audio))
 
-    model = ConformerModel().cuda()
+    # model = ConformerModel().cuda()
+    model = GRUModel().cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))
