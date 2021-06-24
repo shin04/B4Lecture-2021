@@ -14,6 +14,6 @@ audio:
 
 training:
   kfold: 3
-  n_epoch: 100
-  batch_size: 256
+  n_epoch: 20
+  batch_size: 512
   lr: 0.001

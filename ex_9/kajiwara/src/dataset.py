@@ -8,22 +8,25 @@ from torch.utils.data import Dataset
 
 
 def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: int, ) -> np.ndarray:
-    spec = librosa.stft(
-        y=input, n_fft=win_size, win_length=win_size, hop_length=hop_len)
-    spec = np.abs(spec) ** 2.0
+    # spec = librosa.stft(
+    #     y=input, n_fft=win_size, win_length=win_size, hop_length=hop_len)
+    # spec = np.abs(spec) ** 2.0
 
-    mel_filter_bank = librosa.filters.mel(sr=sr, n_fft=win_size, n_mels=n_mels)
-    mel = np.dot(mel_filter_bank, spec)
+    # mel_filter_bank = librosa.filters.mel(sr=sr, n_fft=win_size, n_mels=n_mels)
+    # mel = np.dot(mel_filter_bank, spec)
 
-    # mel = librosa.feature.melspectrogram(
-    #     y=crop_data, sr=sr, n_mels=80, n_fft=win_size, win_length=win_size, hop_length=hop_len)
-    # log_mel = np.log(mel)
+    mel = librosa.feature.melspectrogram(
+        y=input, sr=sr, n_mels=n_mels, n_fft=win_size, win_length=win_size, hop_length=hop_len)
+    log_mel = librosa.amplitude_to_db(mel)
 
-    return mel
+    return log_mel
 
 
 class FSDDataset(Dataset):
-    def __init__(self, audio_path: str, metadata_path: str, win_size_rate: float, overlap: float, n_mels: int, training=True):
+    def __init__(
+        self, audio_path: str, metadata_path: str,
+        win_size_rate: float, overlap: float, n_mels: int, training: bool = True
+    ):
         self.training = training
         self.audio_path = Path(audio_path)
 
@@ -55,11 +58,9 @@ class FSDDataset(Dataset):
                            int(win_size*self.overlap), self.n_mels)
 
         if self.training:
-            return np.float32(feature.T[np.newaxis, :, :]), self.labels[idx]
-            # return np.float32(waveform), self.labels[idx]
+            return np.float32(feature[np.newaxis, :, :]), self.labels[idx]
         else:
-            return np.float32(feature.T[np.newaxis, :, :])
-            # return np.float32(waveform)
+            return np.float32(feature[np.newaxis, :, :])
 
 
 if __name__ == '__main__':
