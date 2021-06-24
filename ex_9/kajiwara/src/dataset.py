@@ -40,16 +40,23 @@ class FSDDataset(Dataset):
 
         # waveform, _ = torchaudio.load(data_path)
         waveform, sr = librosa.load(data_path)
-        waveform = np.append(waveform, np.array([0] * (int(1.0*sr) - len(waveform))))
+        if len(waveform) <= 1.0*sr:
+            waveform = np.append(waveform, np.array(
+                [0] * (int(1.0*sr) - len(waveform))))
+        else:
+            waveform = waveform[:int(1.0*sr)]
         win_size = int(sr*0.025)
         overlap = 0.4
         n_mels = 64
-        feature = mel_spec(waveform, sr, win_size, int(win_size*overlap), n_mels)
+        feature = mel_spec(waveform, sr, win_size,
+                           int(win_size*overlap), n_mels)
 
         if self.training:
             return np.float32(feature.T[np.newaxis, :, :]), self.labels[idx]
+            # return np.float32(waveform), self.labels[idx]
         else:
             return np.float32(feature.T[np.newaxis, :, :])
+            # return np.float32(waveform)
 
 
 if __name__ == '__main__':

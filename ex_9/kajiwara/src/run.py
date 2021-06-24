@@ -13,7 +13,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import FSDDataset
-from model import BaseModel
+from model import BaseModel, ConformerModel
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -56,7 +56,7 @@ def train(trainloader, optimizer, device, global_step,  model, criterion, writer
     train_loss /= n_batch
     train_acc /= len(trainloader.dataset)
 
-    return model, global_step, train_loss, train_acc
+    return global_step, train_loss, train_acc
 
 
 def valid(validloader, device, model, criterion):
@@ -106,10 +106,16 @@ def run(cfg):
     if not log_path.exists():
         log_path.mkdir(parents=True)
 
+    result_path = Path(path_cfg['result']) / ts
+    if not result_path.exists():
+        result_path.mkdir(parents=True)
+
     print('PATH')
     print(f'audio: {audio_path}')
     print(f'meta: {meta_path}')
+    print(f'test meta: {test_metadata_path}')
     print(f'tensorboard: {log_path}')
+    print(f'result: {result_path}')
 
     """set parameters"""
     device = torch.device(cfg['device'])
@@ -146,16 +152,17 @@ def run(cfg):
             validset, batch_size=batch_size, shuffle=True, pin_memory=True)
 
         """prepare model"""
-        model = BaseModel().cuda()
+        model = ConformerModel().cuda()
 
         """prepare optimizer and loss function"""
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.CrossEntropyLoss()
 
         """training and validation"""
+        best_loss = 10000
         train_global_step = 0
         for epoch in range(n_epoch):
-            model, train_global_step, train_loss, train_acc = train(
+            train_global_step, train_loss, train_acc = train(
                 trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold)
             valid(validloader, device, model, criterion)
 
@@ -164,6 +171,11 @@ def run(cfg):
 
             print(
                 f'epoch: {epoch}/{n_epoch}, train loss: {train_loss}, train acc: {train_acc}')
+
+            if best_loss > train_loss:
+                best_loss = train_loss
+                with open(result_path / f'fold{k_fold}-best.pt', 'wb') as f:
+                    torch.save(model.state_dict(), f)
 
         """prediction"""
         model.eval()

@@ -2,8 +2,8 @@ device: cuda
 
 path:
   audio: /work/dataset
-  meta: /work/meta/new_training.csv
-  test_meta: /work/meta/new_test.csv
+  meta: /work/meta/training.csv
+  test_meta: /work/meta/test.csv
   tensorboard: /work/log/tensorboard
   result: /work/results
 
@@ -13,6 +13,6 @@ preprocess:
   freq_shift_size: 20
 
 training:
-  n_epoch: 300
+  n_epoch: 100
   batch_size: 256
   lr: 0.001

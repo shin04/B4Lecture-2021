@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# from torchlibrosa.stft import Spectrogram, LogmelFilterBank
+from torchlibrosa.stft import Spectrogram, LogmelFilterBank
 from torchlibrosa.augmentation import SpecAugmentation
-
-# from torchinfo import summary
+from conformer import ConformerBlock
+from torchinfo import summary
 
 
 class SpecAugBlock(nn.Module):
@@ -34,8 +34,9 @@ class SpecAugBlock(nn.Module):
 
         # x = self.spectrogram_extractor(input)
         # x = self.logmel_extractor(x)
+        x = input
 
-        x = input.transpose(1, 3)
+        x = x.transpose(1, 3)
         x = self.batch_norm(x)
         x = x.transpose(1, 3)
 
@@ -93,7 +94,8 @@ class BaseModel(nn.Module):
 
     def forward(self, input):
         """
-        Input: (batch_size, data_length)"""
+        Input: (batch_size, data_length)
+        """
 
         x = self.spec_aug_block(input)
 
@@ -121,10 +123,62 @@ class BaseModel(nn.Module):
         return output
 
 
+class ConformerModel(nn.Module):
+    def __init__(self, training=True):
+        super(ConformerModel, self).__init__()
+
+        self.training = training
+
+        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
+
+        self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
+        self.fc1 = nn.Linear(128*50*32, 128, bias=True)
+
+        self.conf_block1 = ConformerBlock(
+            dim=128,
+            dim_head=32,
+            heads=4,
+            ff_mult=4,
+            conv_expansion_factor=2,
+            conv_kernel_size=31,
+            attn_dropout=0.,
+            ff_dropout=0.,
+        )
+
+        self.fc2 = nn.Linear(128, 256, bias=True)
+        self.output_layer = nn.Linear(256, 10, bias=True)
+
+    def forward(self, input):
+        """
+        Input: (batch_size, data_length)
+        """
+
+        x = self.spec_aug_block(input)
+
+        x = self.conv_block1(x, pool_size=(2, 2))
+        x = F.dropout(x, p=0.2, training=self.training)
+
+        x = x.view(x.size()[0], -1)
+        x = self.fc1(x)
+
+        x = x.unsqueeze(1)
+        x = self.conf_block1(x)
+
+        x = x.view(x.size()[0], -1)
+        x = self.fc2(x)
+        output = self.output_layer(x)
+
+        return output
+
+
 if __name__ == '__main__':
-    batch_audio = torch.empty(32, 22050*3).uniform_(-1, 1).cuda()
+    batch_audio = torch.empty(32, 1, 100, 64).uniform_(-1, 1).cuda()
     # spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64).cuda()
     # print(spec_aug_block(batch_audio).shape)
 
-    model = BaseModel().cuda()
+    # model = BaseModel().cuda()
+    # print(model(batch_audio))
+
+    model = ConformerModel().cuda()
+    # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))
