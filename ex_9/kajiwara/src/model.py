@@ -132,7 +132,7 @@ class ConformerModel(nn.Module):
         self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
-        self.fc1 = nn.Linear(128*50*32, 128, bias=True)
+        self.fc1 = nn.Linear(128*20*8, 128, bias=True)
 
         self.conf_block1 = ConformerBlock(
             dim=128,
