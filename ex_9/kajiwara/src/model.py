@@ -25,7 +25,7 @@ class SpecAugBlock(nn.Module):
         self.spec_augmenter = SpecAugmentation(
             time_drop_width=2, time_stripes_num=2, freq_drop_width=2, freq_stripes_num=2)
 
-        self.batch_norm = nn.BatchNorm2d(41)
+        self.batch_norm = nn.BatchNorm2d(81)
 
     def forward(self, input):
         """
@@ -86,7 +86,7 @@ class ConformerModel(nn.Module):
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
         self.flatten1 = nn.Flatten()
-        self.fc1 = nn.Linear(128*20*8, 128, bias=True)
+        self.fc1 = nn.Linear(128*16*40, 128, bias=True)
 
         self.conf_block1 = ConformerBlock(
             dim=128,

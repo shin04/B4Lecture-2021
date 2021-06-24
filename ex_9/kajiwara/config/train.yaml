@@ -8,9 +8,9 @@ path:
   result: /work/results
 
 audio:
-  win_size_rate: 0.05 # winsize = win_size_rate * sr
+  win_size_rate: 0.025 # winsize = win_size_rate * sr
   overlap: 0.5
-  n_mels: 16
+  n_mels: 32
 
 training:
   kfold: 3
