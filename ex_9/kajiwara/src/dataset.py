@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import librosa
 from torch.utils.data import Dataset
-# import torchaudio
+
+import augmentations
 
 
 def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: int, ) -> np.ndarray:
@@ -25,9 +26,16 @@ def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: in
 class FSDDataset(Dataset):
     def __init__(
         self, audio_path: str, metadata_path: str,
-        win_size_rate: float, overlap: float, n_mels: int, training: bool = True
+        win_size_rate: float, overlap: float, n_mels: int, training: bool = True,
+        gaussian_noise_snr: bool = True,
+        time_shift: bool = True,
+        volume_control: bool = True
     ):
         self.training = training
+        self.gaussian_noise_snr = gaussian_noise_snr
+        self.time_shift = time_shift
+        self.volume_control = volume_control
+
         self.audio_path = Path(audio_path)
 
         self.win_size_rate = win_size_rate
@@ -45,13 +53,21 @@ class FSDDataset(Dataset):
     def __getitem__(self, idx):
         data_path = self.audio_names[idx]
 
-        # waveform, _ = torchaudio.load(data_path)
         waveform, sr = librosa.load(data_path)
         if len(waveform) <= 1.0*sr:
             waveform = np.append(waveform, np.array(
                 [0] * (int(1.0*sr) - len(waveform))))
         else:
             waveform = waveform[:int(1.0*sr)]
+
+        if self.gaussian_noise_snr:
+            augmentations.gaussian_noise_snr(waveform)
+
+        if self.time_shift:
+            augmentations.time_shift(waveform, sr)
+
+        if self.volume_control:
+            augmentations.volume_control(waveform)
 
         win_size = int(self.win_size_rate * sr)
         feature = mel_spec(waveform, sr, win_size,

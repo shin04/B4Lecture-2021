@@ -146,7 +146,7 @@ def run(cfg):
         metadata_path=meta_path,
         win_size_rate=win_size_rate,
         overlap=overlap,
-        n_mels=n_mels
+        n_mels=n_mels,
     )
     idxes = [i for i in range(len(dataset))]
     kf = KFold(n_splits=kfold, shuffle=True)
