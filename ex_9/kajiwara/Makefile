@@ -4,6 +4,7 @@ IMAGE_NAME=ex9
 CONTAINER_NAME=ex9
 MOUNT_PATH=/home/kajiwara21/work/B4Lecture-2021/ex_9/kajiwara
 DATA_PATH=/home/kajiwara21/work/B4Lecture-2021/ex_9/dataset
+EX_DATA_PATH=/home/kajiwara21/nas02/home/dataset/free-spoken-digit-dataset-ex
 
 build:
 	docker build -t $(IMAGE_NAME) .
@@ -13,6 +14,7 @@ run:
 		--shm-size=4g \
 		--mount type=bind,source=$(MOUNT_PATH),target=/work \
 		--mount type=bind,source=$(DATA_PATH),target=/work/dataset \
+		--mount type=bind,source=$(EX_DATA_PATH),target=/work/ex_dataset \
 		--name $(CONTAINER_NAME) \
 		--gpus all \
 		-p 6007:6007 \

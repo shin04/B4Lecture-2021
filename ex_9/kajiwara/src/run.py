@@ -13,7 +13,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import FSDDataset
-from model import ConformerModel
+from model import ConformerModel, GRUModel
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -119,6 +119,8 @@ def run(cfg):
 
     """set parameters"""
     device = torch.device(cfg['device'])
+
+    model_name = train_cfg['model']
     kfold = train_cfg['kfold']
     n_epoch = train_cfg['n_epoch']
     batch_size = train_cfg['batch_size']
@@ -132,6 +134,7 @@ def run(cfg):
 
     print('PARAMETERS')
     print(f'device: {device}')
+    print(f'model: {model_name}')
     print(f'kfold: {kfold}')
     print(f'n_epoch: {n_epoch}')
     print(f'batch_size: {batch_size}')
@@ -164,8 +167,10 @@ def run(cfg):
             validset, batch_size=batch_size, shuffle=True, pin_memory=True)
 
         """prepare model"""
-        model = ConformerModel().cuda()
-        # model = GRUModel().cuda()
+        if model_name == 'ConformerModel':
+            model = ConformerModel().cuda()
+        else:
+            model = GRUModel().cuda()
 
         """prepare optimizer and loss function"""
         optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -211,7 +216,7 @@ def run(cfg):
         preds_by_fold.append(np.array(preds))
 
     preds_by_fold = np.array(preds_by_fold)
-    np.save('./predict', preds_by_fold)
+    np.save('./predict/'+ts+'-pred', preds_by_fold)
 
     writer.close()
 

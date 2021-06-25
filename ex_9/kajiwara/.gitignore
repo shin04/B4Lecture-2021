@@ -8,3 +8,5 @@ __pycache__
 outputs/
 /log/
 /results/
+/dataset/
+/ex_dataset/

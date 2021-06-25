@@ -131,7 +131,6 @@ class ConformerModel(nn.Module):
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
         x = self.conf_block2(x)
-        # x = self.conf_block3(x)
 
         x = self.flatten2(x)
         x = self.fc2(x)
@@ -148,9 +147,9 @@ class GRUModel(nn.Module):
 
         self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
 
-        self.rnn_layer1 = nn.GRU(16, 128, 2, dropout=0.2)
+        self.rnn_layer1 = nn.GRU(81, 256, 2, dropout=0.2)
         self.flatten1 = nn.Flatten()
-        self.output_layer = nn.Linear(41*128, 10, bias=True)
+        self.output_layer = nn.Linear(32*256, 10, bias=True)
 
     def forward(self, input):
         """

@@ -79,6 +79,11 @@ class FSDDataset(Dataset):
             return np.float32(feature[np.newaxis, :, :])
 
 
+class EXFSD_Dataset(Dataset):
+    def __init__(self, data_path: str):
+        self.data_path =
+
+
 if __name__ == '__main__':
     dataset = FSDDataset(
         audio_path='/work/dataset',

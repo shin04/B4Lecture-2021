@@ -2,6 +2,8 @@ device: cuda
 
 path:
   audio: /work/dataset
+  ex_audio: /work/ex_dataset/audio
+  ex_label: /work/ex_dataset/meta
   meta: /work/meta/training.csv
   test_meta: /work/meta/test.csv
   tensorboard: /work/log/tensorboard
@@ -13,6 +15,7 @@ audio:
   n_mels: 32
 
 training:
+  model: 'ConformerModel' # or GRUModel
   kfold: 3
   n_epoch: 20
   batch_size: 512
