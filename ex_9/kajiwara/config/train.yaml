@@ -15,6 +15,7 @@ audio:
   n_mels: 32
 
 training:
+  data: 'extend' # or base
   model: 'ConformerModel' # or GRUModel
   kfold: 3
   n_epoch: 20

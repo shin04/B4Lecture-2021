@@ -80,15 +80,71 @@ class FSDDataset(Dataset):
 
 
 class EXFSD_Dataset(Dataset):
-    def __init__(self, data_path: str):
-        self.data_path =
+    def __init__(
+        self, data_path: str, label_path: str,
+        win_size_rate: float, overlap: float, n_mels: int, training: bool = True,
+    ):
+        self.data = np.array([])
+        for p in list(Path(data_path).glob('**/*.npy')):
+            data = np.load(p)
+            if len(self.data) == 0:
+                self.data = data
+            else:
+                self.data = np.vstack([self.data, data])
+
+        self.labels = np.array([])
+        for p in list(Path(label_path).glob('**/*.npy')):
+            label = np.load(p)
+            if len(self.labels) == 0:
+                self.labels = label
+            else:
+                self.labels = np.hstack([self.labels, label])
+
+        print(self.data.shape)
+        print(self.labels.shape)
+
+        self.training = training
+
+        self.win_size_rate = win_size_rate
+        self.overlap = overlap
+        self.n_mels = n_mels
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        waveform = self.data[idx]
+        sr = 22050
+
+        win_size = int(self.win_size_rate * sr)
+        feature = mel_spec(waveform, sr, win_size,
+                           int(win_size*self.overlap), self.n_mels)
+
+        if self.training:
+            return np.float32(feature[np.newaxis, :, :]), self.labels[idx]
+        else:
+            return np.float32(feature[np.newaxis, :, :])
 
 
 if __name__ == '__main__':
     dataset = FSDDataset(
         audio_path='/work/dataset',
-        metadata_path='/work/training.csv',
+        metadata_path='/work/meta/training.csv',
+        win_size_rate=0.025,
+        overlap=0.5,
+        n_mels=32
     )
 
     print(len(dataset))
-    print(dataset[0])
+    print(dataset[0][0].shape)
+
+    ex_dataset = EXFSD_Dataset(
+        data_path='/work/ex_dataset/audio',
+        label_path='/work/ex_dataset/meta',
+        win_size_rate=0.025,
+        overlap=0.5,
+        n_mels=32
+    )
+
+    print(len(ex_dataset))
+    print(ex_dataset[0][0].shape)

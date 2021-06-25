@@ -12,7 +12,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-from dataset import FSDDataset
+from dataset import FSDDataset, EXFSD_Dataset
 from model import ConformerModel, GRUModel
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
@@ -101,6 +101,8 @@ def run(cfg):
     audio_path = Path(path_cfg['audio'])
     meta_path = Path(path_cfg['meta'])
     test_metadata_path = Path(path_cfg['test_meta'])
+    ex_audio_path = Path(path_cfg['ex_audio'])
+    ex_label_path = Path(path_cfg['ex_label'])
 
     log_path = Path(path_cfg['tensorboard']) / ts
     if not log_path.exists():
@@ -114,12 +116,15 @@ def run(cfg):
     print(f'audio: {audio_path}')
     print(f'meta: {meta_path}')
     print(f'test meta: {test_metadata_path}')
+    print(f'ex_data: {ex_audio_path}')
+    print(f'ex_label: {ex_label_path}')
     print(f'tensorboard: {log_path}')
     print(f'result: {result_path}')
 
     """set parameters"""
     device = torch.device(cfg['device'])
 
+    data_type = train_cfg['data']
     model_name = train_cfg['model']
     kfold = train_cfg['kfold']
     n_epoch = train_cfg['n_epoch']
@@ -134,6 +139,7 @@ def run(cfg):
 
     print('PARAMETERS')
     print(f'device: {device}')
+    print(f'data: {data_type}')
     print(f'model: {model_name}')
     print(f'kfold: {kfold}')
     print(f'n_epoch: {n_epoch}')
@@ -144,13 +150,22 @@ def run(cfg):
     print(f'n_mels: {n_mels}')
 
     """training and validation"""
-    dataset = FSDDataset(
-        audio_path=audio_path,
-        metadata_path=meta_path,
-        win_size_rate=win_size_rate,
-        overlap=overlap,
-        n_mels=n_mels,
-    )
+    if data_type == 'extend':
+        dataset = EXFSD_Dataset(
+            data_path=ex_audio_path,
+            label_path=ex_label_path,
+            win_size_rate=win_size_rate,
+            overlap=overlap,
+            n_mels=n_mels,
+        )
+    else:
+        dataset = FSDDataset(
+            audio_path=audio_path,
+            metadata_path=meta_path,
+            win_size_rate=win_size_rate,
+            overlap=overlap,
+            n_mels=n_mels,
+        )
     idxes = [i for i in range(len(dataset))]
     kf = KFold(n_splits=kfold, shuffle=True)
     preds_by_fold = []
@@ -216,7 +231,7 @@ def run(cfg):
         preds_by_fold.append(np.array(preds))
 
     preds_by_fold = np.array(preds_by_fold)
-    np.save('./predict/'+ts+'-pred', preds_by_fold)
+    np.save(result_path/'pred', preds_by_fold)
 
     writer.close()
 

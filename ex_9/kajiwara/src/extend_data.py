@@ -3,7 +3,7 @@ from pathlib import Path
 import hydra
 import numpy as np
 import pandas as pd
-import soundfile as sf
+import librosa
 from tqdm import tqdm
 
 import augmentations
@@ -22,11 +22,11 @@ def main(cfg):
     base_label = base_df['label'].values
 
     """base audio"""
-    _, _sr = sf.read(base_meta[0])
+    _, _sr = librosa.load(base_meta[0])
     base_wave_list = np.zeros((len(base_meta), int(_sr*1.0)))
     for i, p in tqdm(enumerate(base_meta)):
         p = Path(p)
-        waveform, sr = sf.read(p)
+        waveform, sr = librosa.load(p)
         if len(waveform) <= 1.0*sr:
             waveform = np.append(waveform, np.array(
                 [0] * (int(1.0*sr) - len(waveform))))
