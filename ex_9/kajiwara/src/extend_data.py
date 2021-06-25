@@ -9,7 +9,7 @@ from tqdm import tqdm
 import augmentations
 
 
-@ hydra.main(config_path='../config', config_name='train')
+@ hydra.main(config_path='../config', config_name='param')
 def main(cfg):
     pathes = cfg['path']
 

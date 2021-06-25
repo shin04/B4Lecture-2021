@@ -78,7 +78,7 @@ class EXFSD_Dataset(Dataset):
         win_size_rate: float, overlap: float, n_mels: int, training: bool = True,
     ):
         self.data = np.array([])
-        for p in list(Path(data_path).glob('**/*.npy')):
+        for p in list(Path(data_path).glob('*.npy')):
             data = np.load(p)
             if len(self.data) == 0:
                 self.data = data
@@ -86,7 +86,7 @@ class EXFSD_Dataset(Dataset):
                 self.data = np.vstack([self.data, data])
 
         self.labels = np.array([])
-        for p in list(Path(label_path).glob('**/*.npy')):
+        for p in list(Path(label_path).glob('*.npy')):
             label = np.load(p)
             if len(self.labels) == 0:
                 self.labels = label
@@ -120,16 +120,16 @@ class EXFSD_Dataset(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = FSDDataset(
-        audio_path='/work/dataset',
-        metadata_path='/work/meta/training.csv',
-        win_size_rate=0.025,
-        overlap=0.5,
-        n_mels=32
-    )
+    # dataset = FSDDataset(
+    #     audio_path='/work/dataset',
+    #     metadata_path='/work/meta/training.csv',
+    #     win_size_rate=0.025,
+    #     overlap=0.5,
+    #     n_mels=32
+    # )
 
-    print(len(dataset))
-    print(dataset[0][0].shape)
+    # print(len(dataset))
+    # print(dataset[0][0].shape)
 
     ex_dataset = EXFSD_Dataset(
         data_path='/work/ex_dataset/audio',
