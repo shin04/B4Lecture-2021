@@ -14,6 +14,20 @@ audio:
   overlap: 0.5
   n_mels: 32
 
+augmentation:
+  gaussian_noise:
+    using: True
+    min_snr: 5.0
+    max_snr: 20.0
+  time_shift:
+    using: True
+    max_shift_sec: 0.2
+    padding_mode: 'replace' # or zero
+  volume_control:
+    using: True
+    db_lim: 20
+    mode: 'sine' # 'uniform', 'fade', 'cosine', 'sine'
+
 training:
   data: 'extend' # or base
   model: 'ConformerModel' # or GRUModel

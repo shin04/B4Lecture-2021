@@ -109,6 +109,16 @@ class ConformerModel(nn.Module):
             attn_dropout=0.,
             ff_dropout=0.,
         )
+        self.conf_block3 = ConformerBlock(
+            dim=128,
+            dim_head=32,
+            heads=4,
+            ff_mult=4,
+            conv_expansion_factor=2,
+            conv_kernel_size=31,
+            attn_dropout=0.,
+            ff_dropout=0.,
+        )
 
         self.flatten2 = nn.Flatten()
         self.fc2 = nn.Linear(128, 256, bias=True)
@@ -131,6 +141,7 @@ class ConformerModel(nn.Module):
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
         x = self.conf_block2(x)
+        x = self.conf_block3(x)
 
         x = self.flatten2(x)
         x = self.fc2(x)
