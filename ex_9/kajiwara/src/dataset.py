@@ -10,10 +10,13 @@ from omegaconf import DictConfig
 import augmentations
 
 
-def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: int, ) -> np.ndarray:
+def mel_spec(input: np.ndarray, sr: int, win_size: int, hop_len: int, n_mels: int, fmax: int = 4096) -> np.ndarray:
     mel = librosa.feature.melspectrogram(
-        y=input, sr=sr, n_mels=n_mels, n_fft=win_size, win_length=win_size, hop_length=hop_len)
+        y=input, sr=sr, n_mels=n_mels, fmax=fmax, n_fft=win_size, win_length=win_size, hop_length=hop_len)
     log_mel = librosa.amplitude_to_db(mel)
+
+    # reverse
+    log_mel = log_mel[::-1] - np.zeros_like(log_mel)
 
     return log_mel
 
@@ -148,24 +151,24 @@ def mono_to_color(input: np.ndarray, eps=1e-6):
 
 
 if __name__ == '__main__':
-    # dataset = FSDDataset(
-    #     audio_path='/work/dataset',
-    #     metadata_path='/work/meta/training.csv',
-    #     win_size_rate=0.025,
-    #     overlap=0.5,
-    #     n_mels=32
-    # )
-
-    # print(len(dataset))
-    # print(dataset[0][0].shape)
-
-    ex_dataset = EXFSD_Dataset(
-        data_path='/work/ex_dataset/audio',
-        label_path='/work/ex_dataset/meta',
+    dataset = FSDDataset(
+        audio_path='/work/dataset',
+        metadata_path='/work/meta/training.csv',
         win_size_rate=0.025,
         overlap=0.5,
         n_mels=32
     )
 
-    print(len(ex_dataset))
-    print(ex_dataset[0][0].shape)
+    print(len(dataset))
+    print(dataset[0][0].shape)
+
+    # ex_dataset = EXFSD_Dataset(
+    #     data_path='/work/ex_dataset/audio',
+    #     label_path='/work/ex_dataset/meta',
+    #     win_size_rate=0.025,
+    #     overlap=0.5,
+    #     n_mels=32
+    # )
+
+    # print(len(ex_dataset))
+    # print(ex_dataset[0][0].shape)

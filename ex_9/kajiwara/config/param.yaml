@@ -31,7 +31,7 @@ augmentation:
 
 training:
   data: 'base' # base or extend
-  model: 'ResNet' # ConformerModel, GRUModel, ResNet
+  model: 'GRUModel' # ConformerModel, GRUModel, ResNet
   kfold: 3
   n_epoch: 30
   batch_size: 512
