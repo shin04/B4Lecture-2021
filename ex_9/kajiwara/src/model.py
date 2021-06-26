@@ -6,7 +6,7 @@ import torchvision
 from torchlibrosa.augmentation import SpecAugmentation
 from conformer import ConformerBlock
 # from torchinfo import summary
-from efficientnet_pytorch import EfficientNet
+# from efficientnet_pytorch import EfficientNet
 
 
 class SpecAugBlock(nn.Module):
@@ -204,33 +204,23 @@ class ResNet(nn.Module):
         return output
 
 
-def get_efficientnet(name: str, num_classes=10):
-    """
-    name: b0-b8
-    """
+# def get_efficientnet(name: str, num_classes=10):
+#     """
+#     name: b0-b8
+#     """
 
-    model = EfficientNet.from_pretrained('efficientnet-' + name)
+#     model = EfficientNet.from_pretrained('efficientnet-' + name)
+#     nb_ft = model._fc.in_features
+#     model._fc = nn.Linear(nb_ft, num_classes)
 
-    if hasattr(model, "fc"):
-        nb_ft = model.fc.in_features
-        model.fc = nn.Linear(nb_ft, num_classes)
-    elif hasattr(model, "_fc"):
-        nb_ft = model._fc.in_features
-        model._fc = nn.Linear(nb_ft, num_classes)
-    elif hasattr(model, "classifier"):
-        nb_ft = model.classifier.in_features
-        model.classifier = nn.Linear(nb_ft, num_classes)
-    elif hasattr(model, "last_linear"):
-        nb_ft = model.last_linear.in_features
-        model.last_linear = nn.Linear(nb_ft, num_classes)
-
-    return model
+#     return model
 
 
 if __name__ == '__main__':
     batch_audio = torch.empty(32, 3, 100, 16).uniform_(-1, 1).cuda()
 
-    # model = ConformerModel().cuda()
-    model = ResNet('resnet18').cuda()
+    model = ConformerModel().cuda()
+    # model = ResNet('resnet18').cuda()
+    # model = get_efficientnet('b0').cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))
