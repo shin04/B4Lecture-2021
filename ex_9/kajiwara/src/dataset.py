@@ -132,7 +132,6 @@ class EXFSD_Dataset(Dataset):
 def mono_to_color(input: np.ndarray, eps=1e-6):
     X = np.stack([input, input, input])
 
-    # Standardize
     X = X - X.mean()
     X_std = X / (X.std() + eps)
     norm_max = X_std.max()
