@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 # from torchlibrosa.stft import Spectrogram, LogmelFilterBank
 from torchlibrosa.augmentation import SpecAugmentation
 from conformer import ConformerBlock
 # from torchinfo import summary
+from efficientnet_pytorch import EfficientNet
 
 
 class SpecAugBlock(nn.Module):
@@ -141,7 +143,7 @@ class ConformerModel(nn.Module):
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
         x = self.conf_block2(x)
-        x = self.conf_block3(x)
+        # x = self.conf_block3(x)
 
         x = self.flatten2(x)
         x = self.fc2(x)
@@ -177,9 +179,58 @@ class GRUModel(nn.Module):
         return output
 
 
-if __name__ == '__main__':
-    batch_audio = torch.empty(32, 1, 100, 16).uniform_(-1, 1).cuda()
+class ResNet(nn.Module):
+    def __init__(self, base_model_name: str, pretrained=False, num_classes=10):
+        super().__init__()
 
-    model = ConformerModel().cuda()
+        base_model = torchvision.models.__getattribute__(base_model_name)(
+            pretrained=pretrained)
+        layers = list(base_model.children())[:-2]
+        layers.append(nn.AdaptiveMaxPool2d(1))
+        self.encoder = nn.Sequential(*layers)
+
+        in_features = base_model.fc.in_features
+
+        self.classifier = nn.Sequential(
+            nn.Linear(in_features, 256), nn.ReLU(), nn.Dropout(p=0.2),
+            nn.Linear(256, 256), nn.ReLU(), nn.Dropout(p=0.2),
+            nn.Linear(256, num_classes))
+
+    def forward(self, x):
+        batch_size = x.size(0)
+        x = self.encoder(x).view(batch_size, -1)
+        output = self.classifier(x)
+
+        return output
+
+
+def get_efficientnet(name: str, num_classes=10):
+    """
+    name: b0-b8
+    """
+
+    model = EfficientNet.from_pretrained('efficientnet-' + name)
+
+    if hasattr(model, "fc"):
+        nb_ft = model.fc.in_features
+        model.fc = nn.Linear(nb_ft, num_classes)
+    elif hasattr(model, "_fc"):
+        nb_ft = model._fc.in_features
+        model._fc = nn.Linear(nb_ft, num_classes)
+    elif hasattr(model, "classifier"):
+        nb_ft = model.classifier.in_features
+        model.classifier = nn.Linear(nb_ft, num_classes)
+    elif hasattr(model, "last_linear"):
+        nb_ft = model.last_linear.in_features
+        model.last_linear = nn.Linear(nb_ft, num_classes)
+
+    return model
+
+
+if __name__ == '__main__':
+    batch_audio = torch.empty(32, 3, 100, 16).uniform_(-1, 1).cuda()
+
+    # model = ConformerModel().cuda()
+    model = ResNet('resnet18').cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))

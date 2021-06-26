@@ -67,4 +67,4 @@ def valid(validloader, device, model, criterion):
         valid_loss /= len(validloader)
         valid_acc /= total
 
-    print(f'val loss: {valid_loss}, val acc: {valid_acc}')
+    return valid_loss, valid_acc

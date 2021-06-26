@@ -13,7 +13,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import FSDDataset, EXFSD_Dataset
-from model import ConformerModel, GRUModel
+from model import ConformerModel, GRUModel, ResNet
 from traininig import train, valid
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
@@ -67,6 +67,7 @@ def run(cfg):
     win_size_rate = audio_cfg['win_size_rate']
     overlap = audio_cfg['overlap']
     n_mels = audio_cfg['n_mels']
+    n_channels = audio_cfg['n_channels']
 
     writer = SummaryWriter(log_dir=log_path)
 
@@ -81,6 +82,7 @@ def run(cfg):
     print(f'win_size_rate: {win_size_rate}')
     print(f'overlap: {overlap}')
     print(f'n_mels: {n_mels}')
+    print(f'n_channels: {n_channels}')
 
     """training and validation"""
     if data_type == 'extend':
@@ -98,7 +100,8 @@ def run(cfg):
             win_size_rate=win_size_rate,
             overlap=overlap,
             n_mels=n_mels,
-            aug_cfg=aug_cfg
+            aug_cfg=aug_cfg,
+            n_channels=n_channels
         )
 
     testset = FSDDataset(
@@ -108,7 +111,8 @@ def run(cfg):
         win_size_rate=win_size_rate,
         overlap=overlap,
         n_mels=n_mels,
-        aug_cfg=aug_cfg
+        aug_cfg=aug_cfg,
+        n_channels=n_channels
     )
 
     idxes = [i for i in range(len(dataset))]
@@ -116,6 +120,7 @@ def run(cfg):
     preds_by_fold = []
 
     for k_fold, (tr_idx, val_idx) in enumerate(kf.split(idxes)):
+        print('='*10)
         print(f'===== fold: {k_fold}')
 
         """prepare dataset"""
@@ -129,6 +134,8 @@ def run(cfg):
         """prepare model"""
         if model_name == 'ConformerModel':
             model = ConformerModel().cuda()
+        elif model_name == 'ResNet':
+            model = ResNet('resnet18').cuda()
         else:
             model = GRUModel().cuda()
 
@@ -140,15 +147,20 @@ def run(cfg):
         best_loss = 10000
         train_global_step = 0
         for epoch in range(n_epoch):
+            print(f'===== epoch: {epoch}')
+
             train_global_step, train_loss, train_acc = train(
                 trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold)
-            valid(validloader, device, model, criterion)
+            valid_loss, valid_acc = valid(validloader, device, model, criterion)
 
-            writer.add_scalar(f"{k_fold}/loss/epoch", train_loss, epoch)
-            writer.add_scalar(f"{k_fold}/acc/epoch", train_acc, epoch)
+            writer.add_scalar(f"{k_fold}/train/loss/epoch", train_loss, epoch)
+            writer.add_scalar(f"{k_fold}/train/acc/epoch", train_acc, epoch)
 
-            print(
-                f'epoch: {epoch}/{n_epoch}, train loss: {train_loss}, train acc: {train_acc}')
+            writer.add_scalar(f"{k_fold}/valid/loss/epoch", valid_loss, epoch)
+            writer.add_scalar(f"{k_fold}/valid/acc/epoch", valid_acc, epoch)
+
+            print(f'epoch: {epoch}/{n_epoch}, train loss: {train_loss}, train acc: {train_acc}')
+            print(f'epoch: {epoch}/{n_epoch}, val loss: {valid_loss}, val acc: {valid_acc}')
 
             if best_loss > train_loss:
                 best_loss = train_loss
@@ -170,6 +182,8 @@ def run(cfg):
     np.save(result_path/'pred', preds_by_fold)
 
     writer.close()
+
+    print('complete!!')
 
 
 if __name__ == '__main__':

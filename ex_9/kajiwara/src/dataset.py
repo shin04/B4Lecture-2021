@@ -23,6 +23,7 @@ class FSDDataset(Dataset):
         self, audio_path: str, metadata_path: str,
         win_size_rate: float, overlap: float, n_mels: int,
         aug_cfg: DictConfig, training: bool = True,
+        n_channels: int = 1
     ):
         self.training = training
         self.gns_cfg = aug_cfg['gaussian_noise']
@@ -35,8 +36,12 @@ class FSDDataset(Dataset):
         self.overlap = overlap
         self.n_mels = n_mels
 
+        self.n_channels = n_channels
+
         df = pd.read_csv(Path(metadata_path))
         self.audio_names = df['path'].values
+        # self.start_idx = df['start_idx'].values
+        # self.end_idx = df['end_idx'].values
         if training:
             self.labels = df['label'].values
 
@@ -47,6 +52,7 @@ class FSDDataset(Dataset):
         data_path = self.audio_names[idx]
 
         waveform, sr = librosa.load(data_path)
+        # waveform = waveform[int(self.start_idx[idx]):int(self.end_idx[idx])]
         if len(waveform) <= 1.0*sr:
             waveform = np.append(waveform, np.array(
                 [0] * (int(1.0*sr) - len(waveform))))
@@ -66,10 +72,17 @@ class FSDDataset(Dataset):
         feature = mel_spec(waveform, sr, win_size,
                            int(win_size*self.overlap), self.n_mels)
 
-        if self.training:
-            return np.float32(feature[np.newaxis, :, :]), self.labels[idx]
+        if self.n_channels == 1:
+            feature = np.float32(feature[np.newaxis, :, :])
         else:
-            return np.float32(feature[np.newaxis, :, :])
+            # feature = np.stack([feature, feature, feature])
+            feature = mono_to_color(feature)
+            feature = np.float32(feature)
+
+        if self.training:
+            return feature, self.labels[idx]
+        else:
+            return feature
 
 
 class EXFSD_Dataset(Dataset):
@@ -93,9 +106,6 @@ class EXFSD_Dataset(Dataset):
             else:
                 self.labels = np.hstack([self.labels, label])
 
-        print(self.data.shape)
-        print(self.labels.shape)
-
         self.training = training
 
         self.win_size_rate = win_size_rate
@@ -117,6 +127,25 @@ class EXFSD_Dataset(Dataset):
             return np.float32(feature[np.newaxis, :, :]), self.labels[idx]
         else:
             return np.float32(feature[np.newaxis, :, :])
+
+
+def mono_to_color(input: np.ndarray, eps=1e-6):
+    X = np.stack([input, input, input])
+
+    # Standardize
+    X = X - X.mean()
+    X_std = X / (X.std() + eps)
+    norm_max = X_std.max()
+    norm_min = X_std.min()
+    if (norm_max - norm_min) > eps:
+        V = X_std
+        V[V < norm_min] = norm_min
+        V[V > norm_max] = norm_max
+        V = 255 * (V - norm_min) / (norm_max - norm_min)
+        V = V.astype(np.uint8)
+    else:
+        V = np.zeros_like(X_std, dtype=np.uint8)
+    return V
 
 
 if __name__ == '__main__':

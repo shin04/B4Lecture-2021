@@ -13,6 +13,7 @@ audio:
   win_size_rate: 0.025 # winsize = win_size_rate * sr
   overlap: 0.5
   n_mels: 32
+  n_channels: 1
 
 augmentation:
   gaussian_noise:
@@ -29,9 +30,9 @@ augmentation:
     mode: 'sine' # 'uniform', 'fade', 'cosine', 'sine'
 
 training:
-  data: 'extend' # or base
-  model: 'ConformerModel' # or GRUModel
+  data: 'base' # base or extend
+  model: 'ResNet' # ConformerModel, GRUModel, ResNet
   kfold: 3
-  n_epoch: 20
+  n_epoch: 30
   batch_size: 512
   lr: 0.001
