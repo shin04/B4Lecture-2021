@@ -18,22 +18,23 @@ def train(trainloader, optimizer, device, global_step,  model, criterion, writer
         t_data = t_data.to(device)
         labels = labels.to(device)
 
-        t_data, label_a, label_b, lam = mixup(t_data, labels)
+        # t_data, label_a, label_b, lam = mixup(t_data, labels)
 
         outputs = model(t_data)
 
         optimizer.zero_grad()
 
-        # loss = criterion(outputs, labels)
-        loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
+        loss = criterion(outputs, labels)
+        # loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
 
         _, predict = torch.max(outputs.data, 1)
         total += labels.size(0)
-        # correct = (predict == labels).sum()
-        correct = lam * ((predict == label_a).sum()) + (1-lam) * ((predict == label_b).sum())
+        correct = (predict == labels).sum()
+        # correct = lam * ((predict == label_a).sum()) + \
+        #     (1-lam) * ((predict == label_b).sum())
         train_acc += correct.item()
 
         writer.add_scalar(f"{fold}/loss", loss.item(), global_step)
