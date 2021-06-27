@@ -1,5 +1,5 @@
 import torch
-from augmentations import mixup
+# from augmentations import mixup
 
 
 def mixup_criterion(criterion, pred, y_a, y_b, lam):

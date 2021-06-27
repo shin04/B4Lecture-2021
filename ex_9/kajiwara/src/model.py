@@ -145,7 +145,7 @@ class ConformerModel(nn.Module):
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
         x = self.conf_block2(x)
-        # x = self.conf_block3(x)
+        x = self.conf_block3(x)
 
         x = self.flatten2(x)
         x = self.fc2(x)
@@ -263,12 +263,12 @@ class CRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    batch_audio = torch.empty(32, 1, 32, 81).uniform_(-1, 1)
+    batch_audio = torch.empty(32, 1, 32, 81).uniform_(-1, 1).cuda()
 
     # model = ConformerModel().cuda()
     # model = GRUModel().cuda()
     # model = ResNet('resnet18').cuda()
     # model = get_efficientnet('b0').cuda()
-    model = CRNN()
+    model = CRNN().cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))
