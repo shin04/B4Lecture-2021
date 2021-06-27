@@ -32,7 +32,8 @@ def train(trainloader, optimizer, device, global_step,  model, criterion, writer
 
         _, predict = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct = (predict == labels).sum()
+        # correct = (predict == labels).sum()
+        correct = lam * ((predict == label_a).sum()) + (1-lam) * ((predict == label_b).sum())
         train_acc += correct.item()
 
         writer.add_scalar(f"{fold}/loss", loss.item(), global_step)
