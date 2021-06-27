@@ -83,6 +83,21 @@ if __name__ == '__main__':
     )
     testloader = DataLoader(testset, batch_size=16, pin_memory=True)
     device = torch.device('cuda')
-    pred = run(
-        'Conformer', '/work/results/20210627081148/fold0-best.pt', testloader, device)
-    print(pred)
+    ts = 20210627092226
+    result_path = Path('./')
+    truth_path = Path('/work/meta/test_truth.csv')
+
+    preds_by_fold = []
+    for i in range(3):
+        preds_by_fold.append(
+            run(
+                'ConformerModel',
+                '/work/results/20210627092226/fold0-best.pt',
+                testloader, device
+            )
+        )
+
+    preds_by_fold = np.array(preds_by_fold)
+    generate_confusion_matrix(
+        ts, result_path, preds_by_fold, truth_path
+    )
