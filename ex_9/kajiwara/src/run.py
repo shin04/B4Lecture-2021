@@ -14,7 +14,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import FSDDataset
-from model import ConformerModel, GRUModel, ResNet
+from model import ConformerModel, GRUModel, ResNet, CRNN
 from traininig import train, valid
 
 
@@ -142,6 +142,8 @@ def run(cfg):
             model = ConformerModel().cuda()
         elif model_name == 'ResNet':
             model = ResNet('resnet18').cuda()
+        elif model_name == 'CRNN':
+            model = CRNN().cuda()
         else:
             model = GRUModel().cuda()
 

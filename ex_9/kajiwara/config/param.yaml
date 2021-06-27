@@ -23,15 +23,15 @@ augmentation:
   time_shift:
     using: True
     max_shift_sec: 0.2
-    padding_mode: 'replace' # or zero
+    padding_mode: "replace" # or zero
   volume_control:
     using: True
     db_lim: 30
-    mode: 'sine' # 'uniform', 'fade', 'cosine', 'sine'
+    mode: "sine" # 'uniform', 'fade', 'cosine', 'sine'
 
 training:
-  data: 'base' # base or extend
-  model: 'ConformerModel' # ConformerModel, GRUModel, ResNet
+  data: "base" # base or extend
+  model: "ConformerModel" # ConformerModel, GRUModel, ResNet, CRNN
   kfold: 3
   n_epoch: 30
   batch_size: 512

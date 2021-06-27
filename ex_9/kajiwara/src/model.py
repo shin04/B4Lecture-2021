@@ -84,7 +84,8 @@ class ConformerModel(nn.Module):
 
         self.training = training
 
-        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64, training=training)
+        self.spec_aug_block = SpecAugBlock(
+            22050, int(22050*0.025), 0.4, 64, training=training)
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
         self.flatten1 = nn.Flatten()
@@ -215,10 +216,12 @@ class CRNN(nn.Module):
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
         self.conv_block2 = ConvBlock(in_channels=128, out_channels=256)
+        self.flatten1 = nn.Flatten()
+        self.fc1 = nn.Linear(256*8*20, 256, bias=True)
 
         self.rnn_layer1 = nn.GRU(256, 512, 2, dropout=0.2)
         self.flatten2 = nn.Flatten()
-        self.output_layer = nn.Linear(32*512, 10, bias=True)
+        self.output_layer = nn.Linear(512, 10, bias=True)
 
     def forward(self, input):
         """
@@ -227,16 +230,21 @@ class CRNN(nn.Module):
 
         x = self.spec_aug_block(input)
 
+        """CNN Block"""
         x = self.conv_block1(x, pool_size=(2, 2))
         x = F.dropout(x, p=0.2, training=self.training)
 
         x = self.conv_block2(x, pool_size=(2, 2))
         x = F.dropout(x, p=0.2, training=self.training)
 
-        x = x.squeeze(1)
-
-        x = self.rnn_layer1(x)[0]
         x = self.flatten1(x)
+        x = self.fc1(x)
+
+        x = x.unsqueeze(1)
+
+        """RNN Block"""
+        x = self.rnn_layer1(x)[0]
+        x = self.flatten2(x)
         output = self.output_layer(x)
 
         return output
@@ -255,11 +263,12 @@ class CRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    batch_audio = torch.empty(32, 3, 100, 16).uniform_(-1, 1).cuda()
+    batch_audio = torch.empty(32, 1, 32, 81).uniform_(-1, 1)
 
     # model = ConformerModel().cuda()
+    # model = GRUModel().cuda()
     # model = ResNet('resnet18').cuda()
     # model = get_efficientnet('b0').cuda()
-    model = CRNN().cuda()
+    model = CRNN()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))

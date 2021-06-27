@@ -52,4 +52,4 @@ if __name__ == '__main__':
     device = torch.device('cuda')
     predict = run(
         'Conformer', '/work/results/20210627081148/fold0-best.pt', testset, device)
-    print(oredict)
+    print(predictt)
