@@ -28,8 +28,8 @@ def run(model_name: str, weight_path: str, testloader: DataLoader, device: Any) 
     """load model"""
     if model_name == 'ConformerModel':
         model = ConformerModel().cuda()
-    elif model_name == 'ResNet':
-        model = ResNet('resnet18').cuda()
+    elif 'resnet' in model_name:
+        model = ResNet(model_name).cuda()
     elif model_name == 'CRNN':
         model = CRNN().cuda()
     else:

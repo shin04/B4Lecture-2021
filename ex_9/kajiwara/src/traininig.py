@@ -1,12 +1,14 @@
 import torch
-# from augmentations import mixup
+from augmentations import mixup
 
 
 def mixup_criterion(criterion, pred, y_a, y_b, lam):
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
-def train(trainloader, optimizer, device, global_step,  model, criterion, writer, fold):
+def train(
+        trainloader, optimizer, device, global_step,
+        model, criterion, writer, fold, is_mixup):
     model.train()
 
     n_batch = len(trainloader)
@@ -18,23 +20,31 @@ def train(trainloader, optimizer, device, global_step,  model, criterion, writer
         t_data = t_data.to(device)
         labels = labels.to(device)
 
-        # t_data, label_a, label_b, lam = mixup(t_data, labels)
+        if is_mixup:
+            t_data, label_a, label_b, lam = mixup(t_data, labels)
 
         outputs = model(t_data)
 
         optimizer.zero_grad()
 
-        loss = criterion(outputs, labels)
-        # loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
+        if is_mixup:
+            loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
+        else:
+            loss = criterion(outputs, labels)
+
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
 
         _, predict = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct = (predict == labels).sum()
-        # correct = lam * ((predict == label_a).sum()) + \
-        #     (1-lam) * ((predict == label_b).sum())
+
+        if is_mixup:
+            correct = lam * ((predict == label_a).sum()) + \
+                (1-lam) * ((predict == label_b).sum())
+        else:
+            correct = (predict == labels).sum()
+
         train_acc += correct.item()
 
         writer.add_scalar(f"{fold}/loss", loss.item(), global_step)

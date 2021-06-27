@@ -17,6 +17,8 @@ audio:
   n_channels: 1
 
 augmentation:
+  mixup:
+    using: False
   gaussian_noise:
     using: True
     min_snr: 5.0
@@ -32,7 +34,7 @@ augmentation:
 
 training:
   data: "base" # base or extend
-  model: "ConformerModel" # ConformerModel, GRUModel, ResNet, CRNN
+  model: "ConformerModel" # ConformerModel, GRUModel, resnet18, resnet34, resnet50, CRNN
   kfold: 3
   n_epoch: 30
   batch_size: 512

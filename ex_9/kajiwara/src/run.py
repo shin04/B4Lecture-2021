@@ -79,6 +79,8 @@ def run(cfg):
     meta_df = pd.read_csv(Path(meta_path))
     num_data = len(meta_df)
 
+    is_mixup = aug_cfg['mixup']['using']
+
     print('PARAMETERS')
     print(f'device: {device}')
     print(f'data: {data_type}')
@@ -91,6 +93,7 @@ def run(cfg):
     print(f'overlap: {overlap}')
     print(f'n_mels: {n_mels}')
     print(f'n_channels: {n_channels}')
+    print(f'mixup: {is_mixup}')
 
     """training and validation"""
     trainset = FSDDataset(
@@ -146,8 +149,8 @@ def run(cfg):
         """prepare model"""
         if model_name == 'ConformerModel':
             model = ConformerModel().cuda()
-        elif model_name == 'ResNet':
-            model = ResNet('resnet18').cuda()
+        elif 'resnet' in model_name:
+            model = ResNet(model_name).cuda()
         elif model_name == 'CRNN':
             model = CRNN().cuda()
         else:
@@ -164,7 +167,7 @@ def run(cfg):
             print(f'===== epoch: {epoch}')
 
             train_global_step, train_loss, train_acc = train(
-                trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold)
+                trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold, is_mixup)
             valid_loss, valid_acc = valid(
                 validloader, device, model, criterion)
 
