@@ -16,6 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from dataset import FSDDataset
 from model import ConformerModel, GRUModel, ResNet, CRNN
 from traininig import train, valid
+import prediction
 
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
@@ -38,6 +39,7 @@ def run(cfg):
     test_metadata_path = Path(path_cfg['test_meta'])
     ex_audio_path = Path(path_cfg['ex_audio'])
     ex_label_path = Path(path_cfg['ex_label'])
+    truth_path = Path(path_cfg['truth'])
 
     log_path = Path(path_cfg['tensorboard']) / ts
     if not log_path.exists():
@@ -55,6 +57,7 @@ def run(cfg):
     print(f'ex_label: {ex_label_path}')
     print(f'tensorboard: {log_path}')
     print(f'result: {result_path}')
+    print(f'truth_path: {truth_path}')
 
     """set parameters"""
     device = torch.device(cfg['device'])
@@ -129,6 +132,9 @@ def run(cfg):
         print('='*10)
         print(f'===== fold: {k_fold}')
 
+        # path to save weight
+        weight_path = result_path / f'fold{k_fold}-best.pt'
+
         """prepare dataset"""
         train_subset = Subset(trainset, tr_idx)
         trainloader = DataLoader(
@@ -175,21 +181,20 @@ def run(cfg):
 
             if best_loss > train_loss:
                 best_loss = train_loss
-                with open(result_path / f'fold{k_fold}-best.pt', 'wb') as f:
+                with open(weight_path, 'wb') as f:
                     torch.save(model.state_dict(), f)
 
         """prediction"""
         model.eval()
         testloader = DataLoader(testset, batch_size=16, pin_memory=True)
-        preds = []
-        for data in testloader:
-            data = data.to(device)
-            outputs = model(data)
-            _, pred = torch.max(outputs.data, 1)
-            preds += list(pred.to('cpu').detach().numpy().copy())
-        preds_by_fold.append(np.array(preds))
+        pred = prediction.run(model_name, weight_path, testloader, device)
+        preds_by_fold.append(pred)
 
+    """render confusion matrix and save pred"""
     preds_by_fold = np.array(preds_by_fold)
+    prediction.generate_confusion_matrix(
+        ts, result_path, preds_by_fold, truth_path
+    )
     np.save(result_path/'pred', preds_by_fold)
 
     writer.close()

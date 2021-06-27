@@ -8,6 +8,7 @@ path:
   test_meta: /work/meta/test.csv
   tensorboard: /work/log/tensorboard
   result: /work/results
+  truth: /work/meta/test_truth.csv
 
 audio:
   win_size_rate: 0.025 # winsize = win_size_rate * sr
