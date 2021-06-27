@@ -1,4 +1,6 @@
 import numpy as np
+# import sklearn
+import torch
 
 
 def add_gaussian_noise(input, max_noise_amplitude=0.1):
@@ -54,3 +56,23 @@ def volume_control(input, db_lim=20, mode='sine'):
     augmented = input * db_translated
 
     return augmented
+
+
+def mixup(x, y, alpha=0.2, use_cuda=True):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).cuda()
+    else:
+        index = torch.randperm(batch_size)
+
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+
+    return mixed_x, y_a, y_b, lam

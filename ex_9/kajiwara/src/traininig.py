@@ -1,4 +1,9 @@
 import torch
+from augmentations import mixup
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
 def train(trainloader, optimizer, device, global_step,  model, criterion, writer, fold):
@@ -13,11 +18,14 @@ def train(trainloader, optimizer, device, global_step,  model, criterion, writer
         t_data = t_data.to(device)
         labels = labels.to(device)
 
+        t_data, label_a, label_b, lam = mixup(t_data, labels)
+
         outputs = model(t_data)
 
         optimizer.zero_grad()
 
-        loss = criterion(outputs, labels)
+        # loss = criterion(outputs, labels)
+        loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
