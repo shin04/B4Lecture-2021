@@ -130,12 +130,12 @@ def run(cfg):
         print(f'===== fold: {k_fold}')
 
         """prepare dataset"""
-        trainset = Subset(trainset, tr_idx)
+        train_subset = Subset(trainset, tr_idx)
         trainloader = DataLoader(
-            trainset, batch_size=batch_size, shuffle=True, pin_memory=True)
-        validset = Subset(validset, val_idx)
+            train_subset, batch_size=batch_size, shuffle=True, pin_memory=True)
+        valid_subset = Subset(validset, val_idx)
         validloader = DataLoader(
-            validset, batch_size=batch_size, shuffle=True, pin_memory=True)
+            valid_subset, batch_size=batch_size, shuffle=True, pin_memory=True)
 
         """prepare model"""
         if model_name == 'ConformerModel':
@@ -157,7 +157,8 @@ def run(cfg):
 
             train_global_step, train_loss, train_acc = train(
                 trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold)
-            valid_loss, valid_acc = valid(validloader, device, model, criterion)
+            valid_loss, valid_acc = valid(
+                validloader, device, model, criterion)
 
             writer.add_scalar(f"{k_fold}/train/loss/epoch", train_loss, epoch)
             writer.add_scalar(f"{k_fold}/train/acc/epoch", train_acc, epoch)
@@ -165,8 +166,10 @@ def run(cfg):
             writer.add_scalar(f"{k_fold}/valid/loss/epoch", valid_loss, epoch)
             writer.add_scalar(f"{k_fold}/valid/acc/epoch", valid_acc, epoch)
 
-            print(f'epoch: {epoch}/{n_epoch}, train loss: {train_loss}, train acc: {train_acc}')
-            print(f'epoch: {epoch}/{n_epoch}, val loss: {valid_loss}, val acc: {valid_acc}')
+            print(
+                f'epoch: {epoch}/{n_epoch}, train loss: {train_loss}, train acc: {train_acc}')
+            print(
+                f'epoch: {epoch}/{n_epoch}, val loss: {valid_loss}, val acc: {valid_acc}')
 
             if best_loss > train_loss:
                 best_loss = train_loss

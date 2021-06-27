@@ -214,11 +214,11 @@ class CRNN(nn.Module):
         self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
-        self.conv_block2 = ConvBlock(in_channels=1, out_channels=128)
+        self.conv_block2 = ConvBlock(in_channels=128, out_channels=256)
 
-        self.rnn_layer1 = nn.GRU(81, 256, 2, dropout=0.2)
+        self.rnn_layer1 = nn.GRU(256, 512, 2, dropout=0.2)
         self.flatten2 = nn.Flatten()
-        self.output_layer = nn.Linear(32*256, 10, bias=True)
+        self.output_layer = nn.Linear(32*512, 10, bias=True)
 
     def forward(self, input):
         """
@@ -226,7 +226,11 @@ class CRNN(nn.Module):
         """
 
         x = self.spec_aug_block(input)
+
         x = self.conv_block1(x, pool_size=(2, 2))
+        x = F.dropout(x, p=0.2, training=self.training)
+
+        x = self.conv_block2(x, pool_size=(2, 2))
         x = F.dropout(x, p=0.2, training=self.training)
 
         x = x.squeeze(1)
@@ -253,7 +257,7 @@ class CRNN(nn.Module):
 if __name__ == '__main__':
     batch_audio = torch.empty(32, 3, 100, 16).uniform_(-1, 1).cuda()
 
-    model = ConformerModel().cuda()
+    # model = ConformerModel().cuda()
     # model = ResNet('resnet18').cuda()
     # model = get_efficientnet('b0').cuda()
     model = CRNN().cuda()
