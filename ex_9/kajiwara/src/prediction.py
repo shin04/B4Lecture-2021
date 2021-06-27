@@ -41,7 +41,6 @@ def run(model_name: str, weight_path: str, testloader: DataLoader, device: Any) 
     """predict test data"""
     preds_list = []
     for i in range(5):
-
         preds_list.append(predict(model, testloader, device))
 
     pred = np.array(preds_list).sum(axis=0) // 5

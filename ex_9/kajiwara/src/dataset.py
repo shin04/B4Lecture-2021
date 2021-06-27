@@ -161,7 +161,7 @@ if __name__ == '__main__':
         overlap=0.5,
         n_mels=32,
         training=False,
-        n_channels=1,
+        n_channels=3,
     )
 
     print(len(dataset))

@@ -144,8 +144,8 @@ class ConformerModel(nn.Module):
 
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
-        x = self.conf_block2(x)
-        x = self.conf_block3(x)
+        # x = self.conf_block2(x)
+        # x = self.conf_block3(x)
 
         x = self.flatten2(x)
         x = self.fc2(x)
@@ -185,6 +185,8 @@ class ResNet(nn.Module):
     def __init__(self, base_model_name: str, pretrained=False, num_classes=10):
         super().__init__()
 
+        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
+
         base_model = torchvision.models.__getattribute__(base_model_name)(
             pretrained=pretrained)
         layers = list(base_model.children())[:-2]
@@ -199,8 +201,11 @@ class ResNet(nn.Module):
             nn.Linear(256, num_classes))
 
     def forward(self, x):
+        x = self.spec_aug_block(x)
+
         batch_size = x.size(0)
         x = self.encoder(x).view(batch_size, -1)
+
         output = self.classifier(x)
 
         return output
@@ -263,12 +268,12 @@ class CRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    batch_audio = torch.empty(32, 1, 32, 81).uniform_(-1, 1).cuda()
+    batch_audio = torch.empty(32, 3, 32, 81).uniform_(-1, 1)
 
     # model = ConformerModel().cuda()
     # model = GRUModel().cuda()
-    # model = ResNet('resnet18').cuda()
+    model = ResNet('resnet18')
     # model = get_efficientnet('b0').cuda()
-    model = CRNN().cuda()
+    # model = CRNN().cuda()
     # summary(model, input=(1, 1, 22050*1))
-    print(model(batch_audio))
+    print(model(batch_audio).shape)
