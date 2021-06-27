@@ -12,7 +12,6 @@ from torch.utils.data.dataset import Subset
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
-import torchvision.transforms as transforms
 
 from dataset import FSDDataset
 from model import ConformerModel, GRUModel, ResNet
@@ -100,7 +99,6 @@ def run(cfg):
         aug_cfg=aug_cfg,
         training=True,
         n_channels=n_channels,
-        transform=transforms.ToTensor()
     )
 
     validset = FSDDataset(
@@ -109,9 +107,8 @@ def run(cfg):
         win_size_rate=win_size_rate,
         overlap=overlap,
         n_mels=n_mels,
-        training=False,
+        training=True,
         n_channels=n_channels,
-        transform=transforms.ToTensor()
     )
 
     testset = FSDDataset(
@@ -122,7 +119,6 @@ def run(cfg):
         n_mels=n_mels,
         training=False,
         n_channels=n_channels,
-        transform=transforms.ToTensor()
     )
 
     idxes = [i for i in range(num_data)]

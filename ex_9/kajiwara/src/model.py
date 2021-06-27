@@ -84,7 +84,7 @@ class ConformerModel(nn.Module):
 
         self.training = training
 
-        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
+        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64, training=training)
 
         self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
         self.flatten1 = nn.Flatten()
@@ -205,6 +205,39 @@ class ResNet(nn.Module):
         return output
 
 
+class CRNN(nn.Module):
+    def __init__(self, training=True):
+        super(CRNN, self).__init__()
+
+        self.training = training
+
+        self.spec_aug_block = SpecAugBlock(22050, int(22050*0.025), 0.4, 64)
+
+        self.conv_block1 = ConvBlock(in_channels=1, out_channels=128)
+        self.conv_block2 = ConvBlock(in_channels=1, out_channels=128)
+
+        self.rnn_layer1 = nn.GRU(81, 256, 2, dropout=0.2)
+        self.flatten2 = nn.Flatten()
+        self.output_layer = nn.Linear(32*256, 10, bias=True)
+
+    def forward(self, input):
+        """
+        Input: (batch_size, data_length)
+        """
+
+        x = self.spec_aug_block(input)
+        x = self.conv_block1(x, pool_size=(2, 2))
+        x = F.dropout(x, p=0.2, training=self.training)
+
+        x = x.squeeze(1)
+
+        x = self.rnn_layer1(x)[0]
+        x = self.flatten1(x)
+        output = self.output_layer(x)
+
+        return output
+
+
 # def get_efficientnet(name: str, num_classes=10):
 #     """
 #     name: b0-b8
@@ -223,5 +256,6 @@ if __name__ == '__main__':
     model = ConformerModel().cuda()
     # model = ResNet('resnet18').cuda()
     # model = get_efficientnet('b0').cuda()
+    model = CRNN().cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio))

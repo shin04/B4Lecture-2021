@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import librosa
 from torch.utils.data import Dataset
-import torchvision
 
 from omegaconf import DictConfig
 
@@ -27,7 +26,7 @@ class FSDDataset(Dataset):
         self, audio_path: str, metadata_path: str,
         win_size_rate: float, overlap: float, n_mels: int,
         aug_cfg: DictConfig = None, training: bool = True,
-        n_channels: int = 1, transform: torchvision.transforms = None
+        n_channels: int = 1
     ):
         self.training = training
 
@@ -39,8 +38,6 @@ class FSDDataset(Dataset):
             self.gns_cfg = {'using': False}
             self.ts_cfg = {'using': False}
             self.vc_cfg = {'using': False}
-
-        self.transform = transform
 
         self.audio_path = Path(audio_path)
 
@@ -82,14 +79,11 @@ class FSDDataset(Dataset):
                            int(win_size*self.overlap), self.n_mels)
 
         if self.n_channels == 1:
-            feature = feature[np.newaxis, :, :]
+            feature = np.float32(feature[np.newaxis, :, :])
         else:
             # feature = np.stack([feature, feature, feature])
             feature = mono_to_color(feature)
-            feature = feature
-
-        if self.transform is not None:
-            feature = self.transform(feature)
+            feature = np.float32(feature)
 
         if self.training:
             return feature, self.labels[idx]
