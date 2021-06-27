@@ -3,6 +3,7 @@ from pathlib import Path
 
 import hydra
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import KFold
 
 import torch
@@ -11,8 +12,9 @@ from torch.utils.data.dataset import Subset
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
+import torchvision.transforms as transforms
 
-from dataset import FSDDataset, EXFSD_Dataset
+from dataset import FSDDataset
 from model import ConformerModel, GRUModel, ResNet
 from traininig import train, valid
 
@@ -72,6 +74,9 @@ def run(cfg):
 
     writer = SummaryWriter(log_dir=log_path)
 
+    meta_df = pd.read_csv(Path(meta_path))
+    num_data = len(meta_df)
+
     print('PARAMETERS')
     print(f'device: {device}')
     print(f'data: {data_type}')
@@ -86,37 +91,41 @@ def run(cfg):
     print(f'n_channels: {n_channels}')
 
     """training and validation"""
-    if data_type == 'extend':
-        dataset = EXFSD_Dataset(
-            data_path=ex_audio_path,
-            label_path=ex_label_path,
-            win_size_rate=win_size_rate,
-            overlap=overlap,
-            n_mels=n_mels,
-        )
-    else:
-        dataset = FSDDataset(
-            audio_path=audio_path,
-            metadata_path=meta_path,
-            win_size_rate=win_size_rate,
-            overlap=overlap,
-            n_mels=n_mels,
-            aug_cfg=aug_cfg,
-            n_channels=n_channels
-        )
-
-    testset = FSDDataset(
+    trainset = FSDDataset(
         audio_path=audio_path,
-        metadata_path=test_metadata_path,
-        training=False,
+        metadata_path=meta_path,
         win_size_rate=win_size_rate,
         overlap=overlap,
         n_mels=n_mels,
         aug_cfg=aug_cfg,
-        n_channels=n_channels
+        training=True,
+        n_channels=n_channels,
+        transform=transforms.ToTensor()
     )
 
-    idxes = [i for i in range(len(dataset))]
+    validset = FSDDataset(
+        audio_path=audio_path,
+        metadata_path=meta_path,
+        win_size_rate=win_size_rate,
+        overlap=overlap,
+        n_mels=n_mels,
+        training=False,
+        n_channels=n_channels,
+        transform=transforms.ToTensor()
+    )
+
+    testset = FSDDataset(
+        audio_path=audio_path,
+        metadata_path=test_metadata_path,
+        win_size_rate=win_size_rate,
+        overlap=overlap,
+        n_mels=n_mels,
+        training=False,
+        n_channels=n_channels,
+        transform=transforms.ToTensor()
+    )
+
+    idxes = [i for i in range(num_data)]
     kf = KFold(n_splits=kfold, shuffle=True)
     preds_by_fold = []
 
@@ -125,10 +134,10 @@ def run(cfg):
         print(f'===== fold: {k_fold}')
 
         """prepare dataset"""
-        trainset = Subset(dataset, tr_idx)
+        trainset = Subset(trainset, tr_idx)
         trainloader = DataLoader(
             trainset, batch_size=batch_size, shuffle=True, pin_memory=True)
-        validset = Subset(dataset, val_idx)
+        validset = Subset(validset, val_idx)
         validloader = DataLoader(
             validset, batch_size=batch_size, shuffle=True, pin_memory=True)
 
