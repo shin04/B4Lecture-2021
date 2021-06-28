@@ -32,10 +32,14 @@ class FSDDataset(Dataset):
 
         if aug_cfg is not None:
             self.gns_cfg = aug_cfg['gaussian_noise']
+            self.pn_cfg = aug_cfg['pink_noise']
+            self.ps_cfg = aug_cfg['pitch_shift']
             self.ts_cfg = aug_cfg['time_shift']
             self.vc_cfg = aug_cfg['volume_control']
         else:
             self.gns_cfg = {'using': False}
+            self.pn_cfg = {'using': False}
+            self.ps_cfg = {'using': False}
             self.ts_cfg = {'using': False}
             self.vc_cfg = {'using': False}
 
@@ -66,13 +70,24 @@ class FSDDataset(Dataset):
             waveform = waveform[:int(1.0*sr)]
 
         if self.gns_cfg['using']:
-            augmentations.gaussian_noise_snr(waveform, self.gns_cfg['min_snr'], self.gns_cfg['max_snr'])
+            waveform = augmentations.gaussian_noise_snr(
+                waveform, self.gns_cfg['min_snr'], self.gns_cfg['max_snr'])
+
+        if self.pn_cfg['using']:
+            waveform = augmentations.pink_noise_snr(
+                waveform, self.pn_cfg['min_snr'], self.pn_cfg['max_snr'])
+
+        if self.ps_cfg['using']:
+            waveform = augmentations.pitch_shift(
+                waveform, sr, self.ps_cfg['max_steps'])
 
         if self.ts_cfg['using']:
-            augmentations.time_shift(waveform, sr, self.ts_cfg['max_shift_sec'], self.ts_cfg['padding_mode'])
+            waveform = augmentations.time_shift(
+                waveform, sr, self.ts_cfg['max_shift_sec'], self.ts_cfg['padding_mode'])
 
         if self.vc_cfg['using']:
-            augmentations.volume_control(waveform, self.vc_cfg['db_lim'], self.vc_cfg['mode'])
+            waveform = augmentations.volume_control(
+                waveform, self.vc_cfg['db_lim'], self.vc_cfg['mode'])
 
         win_size = int(self.win_size_rate * sr)
         feature = mel_spec(waveform, sr, win_size,

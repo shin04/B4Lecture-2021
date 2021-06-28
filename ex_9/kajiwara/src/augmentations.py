@@ -1,6 +1,8 @@
 import numpy as np
+import librosa
 # import sklearn
 import torch
+import colorednoise as cn
 
 
 def add_gaussian_noise(input, max_noise_amplitude=0.1):
@@ -18,8 +20,26 @@ def gaussian_noise_snr(input, min_snr=5.0, max_snr=20.0):
 
     white_noise = np.random.randn(len(input))
     a_white = np.sqrt(white_noise ** 2).max()
-    augmented = (input + white_noise * 1 / a_white * a_noise).astype(input.dtype)
+    augmented = (input + white_noise * 1 / a_white *
+                 a_noise).astype(input.dtype)
 
+    return augmented
+
+
+def pink_noise_snr(input, min_snr=5.0, max_snr=20.0):
+    snr = np.random.uniform(min_snr, max_snr)
+    a_signal = np.sqrt(input ** 2).max()
+    a_noise = a_signal / (10 ** (snr / 20))
+
+    pink_noise = cn.powerlaw_psd_gaussian(1, len(input))
+    a_pink = np.sqrt(pink_noise ** 2).max()
+    augmented = (input + pink_noise * 1 / a_pink * a_noise).astype(input.dtype)
+    return augmented
+
+
+def pitch_shift(input, sr, max_steps=5):
+    n_steps = np.random.randint(-max_steps, max_steps)
+    augmented = librosa.effects.pitch_shift(input, sr=sr, n_steps=n_steps)
     return augmented
 
 
@@ -35,7 +55,7 @@ def time_shift(input, sr, max_shift_second=0.2, padding_mode='replace'):
     return augmented
 
 
-def volume_control(input, db_lim=20, mode='sine'):
+def volume_control(input, db_lim=40, mode='sine'):
     """
     mode must be one of 'uniform', 'fade', 'cosine', 'sine'
     """

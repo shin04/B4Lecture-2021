@@ -9,3 +9,4 @@ tensorboard==2.5.0
 hydra-core==1.1.0
 conformer==0.2.5
 efficientnet-pytorch==0.7.1
+colorednoise==1.1.1
