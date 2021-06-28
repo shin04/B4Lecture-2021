@@ -19,6 +19,7 @@ audio:
 augmentation:
   mixup:
     using: False
+    mode: "loss_mixup" # loss_mixup or label_mixup
   gaussian_noise:
     using: True
     min_snr: 5.0

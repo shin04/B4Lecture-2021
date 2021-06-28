@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from augmentations import mixup
 
 
@@ -6,9 +7,16 @@ def mixup_criterion(criterion, pred, y_a, y_b, lam):
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
+def bceloss(pred, target):
+    m = nn.Sigmoid()
+    cr = nn.BCELoss()
+
+    return cr(m(pred), target)
+
+
 def train(
         trainloader, optimizer, device, global_step,
-        model, criterion, writer, fold, is_mixup):
+        model, criterion, writer, fold, is_mixup, mixup_mode=None):
     model.train()
 
     n_batch = len(trainloader)
@@ -27,8 +35,10 @@ def train(
 
         optimizer.zero_grad()
 
-        if is_mixup:
+        if is_mixup and (mixup_mode == 'loss_mixup'):
             loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
+        elif is_mixup and (mixup_mode == 'label_mixup'):
+            loss = bceloss(outputs, labels)
         else:
             loss = criterion(outputs, labels)
 
@@ -62,7 +72,7 @@ def train(
     return global_step, train_loss, train_acc
 
 
-def valid(validloader, device, model, criterion):
+def valid(validloader, device, model, criterion, is_mixup, mixup_mode=None):
     model.eval()
 
     valid_loss = 0
@@ -76,7 +86,12 @@ def valid(validloader, device, model, criterion):
 
             outputs = model(t_data)
 
-            loss = criterion(outputs, labels)
+            # loss = criterion(outputs, labels)
+            if is_mixup and (mixup_mode == 'label_mixup'):
+                loss = bceloss(outputs, labels)
+            else:
+                loss = criterion(outputs, labels)
+
             valid_loss += loss.item()
 
             _, predict = torch.max(outputs.data, 1)

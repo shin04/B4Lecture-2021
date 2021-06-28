@@ -277,3 +277,4 @@ if __name__ == '__main__':
     # model = CRNN().cuda()
     # summary(model, input=(1, 1, 22050*1))
     print(model(batch_audio).shape)
+    print(model(batch_audio)[0])

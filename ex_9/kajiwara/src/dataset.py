@@ -160,12 +160,13 @@ if __name__ == '__main__':
         win_size_rate=0.025,
         overlap=0.5,
         n_mels=32,
-        training=False,
-        n_channels=3,
+        training=True,
+        n_channels=1,
     )
 
     print(len(dataset))
     print(dataset[0][0].shape)
+    print(dataset[0][1])
 
     # ex_dataset = EXFSD_Dataset(
     #     data_path='/work/ex_dataset/audio',

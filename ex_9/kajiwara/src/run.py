@@ -80,6 +80,7 @@ def run(cfg):
     num_data = len(meta_df)
 
     is_mixup = aug_cfg['mixup']['using']
+    mixup_mode = aug_cfg['mixup']['mode']
 
     print('PARAMETERS')
     print(f'device: {device}')
@@ -167,9 +168,10 @@ def run(cfg):
             print(f'===== epoch: {epoch}')
 
             train_global_step, train_loss, train_acc = train(
-                trainloader, optimizer, device, train_global_step, model, criterion, writer, k_fold, is_mixup)
+                trainloader, optimizer, device, train_global_step, model,
+                criterion, writer, k_fold, is_mixup, mixup_mode)
             valid_loss, valid_acc = valid(
-                validloader, device, model, criterion)
+                validloader, device, model, criterion, is_mixup, mixup_mode)
 
             writer.add_scalar(f"{k_fold}/train/loss/epoch", train_loss, epoch)
             writer.add_scalar(f"{k_fold}/train/acc/epoch", train_acc, epoch)
