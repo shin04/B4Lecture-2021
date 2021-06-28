@@ -7,11 +7,16 @@ def mixup_criterion(criterion, pred, y_a, y_b, lam):
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
-def bceloss(pred, target):
+def bceloss(pred, label_a, label_b, lam):
+    onehot_a = nn.functional.one_hot(label_a, num_classes=10).to(torch.float32)
+    onehot_b = nn.functional.one_hot(label_b, num_classes=10).to(torch.float32)
+
+    onehot = lam*onehot_a + (1-lam)*onehot_b
+
     m = nn.Sigmoid()
     cr = nn.BCELoss()
 
-    return cr(m(pred), target)
+    return cr(m(pred), onehot)
 
 
 def train(
@@ -38,7 +43,7 @@ def train(
         if is_mixup and (mixup_mode == 'loss_mixup'):
             loss = mixup_criterion(criterion, outputs, label_a, label_b, lam)
         elif is_mixup and (mixup_mode == 'label_mixup'):
-            loss = bceloss(outputs, labels)
+            loss = bceloss(outputs, label_a, label_b, lam)
         else:
             loss = criterion(outputs, labels)
 
@@ -86,11 +91,11 @@ def valid(validloader, device, model, criterion, is_mixup, mixup_mode=None):
 
             outputs = model(t_data)
 
-            # loss = criterion(outputs, labels)
-            if is_mixup and (mixup_mode == 'label_mixup'):
-                loss = bceloss(outputs, labels)
-            else:
-                loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels)
+            # if is_mixup and (mixup_mode == 'label_mixup'):
+            #     loss = bceloss(outputs, labels)
+            # else:
+            #     loss = criterion(outputs, labels)
 
             valid_loss += loss.item()
 

@@ -144,7 +144,7 @@ class ConformerModel(nn.Module):
 
         x = x.unsqueeze(1)
         x = self.conf_block1(x)
-        # x = self.conf_block2(x)
+        x = self.conf_block2(x)
         # x = self.conf_block3(x)
 
         x = self.flatten2(x)

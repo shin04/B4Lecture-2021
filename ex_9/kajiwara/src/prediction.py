@@ -27,13 +27,13 @@ def predict(model: Any, testloader: DataLoader, device: Any) -> np.ndarray:
 def run(model_name: str, weight_path: str, testloader: DataLoader, device: Any) -> np.array:
     """load model"""
     if model_name == 'ConformerModel':
-        model = ConformerModel().cuda()
+        model = ConformerModel().to(device)
     elif 'resnet' in model_name:
-        model = ResNet(model_name).cuda()
+        model = ResNet(model_name).to(device)
     elif model_name == 'CRNN':
-        model = CRNN().cuda()
+        model = CRNN().to(device)
     else:
-        model = GRUModel().cuda()
+        model = GRUModel().to(device)
 
     model.load_state_dict(torch.load(weight_path))
     model.eval()

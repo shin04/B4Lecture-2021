@@ -11,3 +11,4 @@ src/multirun
 /results/
 /dataset/
 /ex_dataset/
+/notebooks/*png

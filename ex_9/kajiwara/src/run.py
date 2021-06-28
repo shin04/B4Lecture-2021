@@ -149,13 +149,13 @@ def run(cfg):
 
         """prepare model"""
         if model_name == 'ConformerModel':
-            model = ConformerModel().cuda()
+            model = ConformerModel().to(device)
         elif 'resnet' in model_name:
-            model = ResNet(model_name).cuda()
+            model = ResNet(model_name).to(device)
         elif model_name == 'CRNN':
-            model = CRNN().cuda()
+            model = CRNN().to(device)
         else:
-            model = GRUModel().cuda()
+            model = GRUModel().to(device)
 
         """prepare optimizer and loss function"""
         optimizer = optim.Adam(model.parameters(), lr=lr)
