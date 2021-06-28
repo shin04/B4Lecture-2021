@@ -55,7 +55,7 @@ def time_shift(input, sr, max_shift_second=0.2, padding_mode='replace'):
     return augmented
 
 
-def volume_control(input, db_lim=40, mode='sine'):
+def volume_control(input, db_lim=15, mode='sine'):
     """
     mode must be one of 'uniform', 'fade', 'cosine', 'sine'
     """

@@ -69,14 +69,6 @@ class FSDDataset(Dataset):
         else:
             waveform = waveform[:int(1.0*sr)]
 
-        if self.gns_cfg['using']:
-            waveform = augmentations.gaussian_noise_snr(
-                waveform, self.gns_cfg['min_snr'], self.gns_cfg['max_snr'])
-
-        if self.pn_cfg['using']:
-            waveform = augmentations.pink_noise_snr(
-                waveform, self.pn_cfg['min_snr'], self.pn_cfg['max_snr'])
-
         if self.ps_cfg['using']:
             waveform = augmentations.pitch_shift(
                 waveform, sr, self.ps_cfg['max_steps'])
@@ -88,6 +80,14 @@ class FSDDataset(Dataset):
         if self.vc_cfg['using']:
             waveform = augmentations.volume_control(
                 waveform, self.vc_cfg['db_lim'], self.vc_cfg['mode'])
+
+        if self.gns_cfg['using']:
+            waveform = augmentations.gaussian_noise_snr(
+                waveform, self.gns_cfg['min_snr'], self.gns_cfg['max_snr'])
+
+        if self.pn_cfg['using']:
+            waveform = augmentations.pink_noise_snr(
+                waveform, self.pn_cfg['min_snr'], self.pn_cfg['max_snr'])
 
         win_size = int(self.win_size_rate * sr)
         feature = mel_spec(waveform, sr, win_size,

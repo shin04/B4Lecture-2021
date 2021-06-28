@@ -37,7 +37,7 @@ augmentation:
     padding_mode: "replace" # or zero
   volume_control:
     using: True
-    db_lim: 40
+    db_lim: 15
     mode: "cosine" # 'uniform', 'fade', 'cosine', 'sine'
 
 training:
