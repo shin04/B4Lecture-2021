@@ -18,31 +18,31 @@ audio:
 
 augmentation:
   mixup:
-    using: True
+    using: False
     mode: "loss_mixup" # loss_mixup or label_mixup
   gaussian_noise:
     using: False
     min_snr: 5.0
     max_snr: 20.0
   pink_noise:
-    using: True
+    using: False
     min_snr: 5.0
     max_snr: 20.0
   pitch_shift:
     using: True
     max_steps: 5
   time_shift:
-    using: True
-    max_shift_sec: 0.2
+    using: False
+    max_shift_sec: 0.1
     padding_mode: "replace" # or zero
   volume_control:
     using: True
-    db_lim: 15
+    db_lim: 10
     mode: "cosine" # 'uniform', 'fade', 'cosine', 'sine'
 
 training:
   data: "base" # base or extend
-  model: "ConformerModel" # ConformerModel, GRUModel, resnet18, resnet34, resnet50, CRNN
+  model: "GRUModel" # ConformerModel, GRUModel, resnet18, resnet34, resnet50, CRNN
   kfold: 3
   n_epoch: 30
   batch_size: 512

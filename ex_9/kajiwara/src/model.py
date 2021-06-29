@@ -5,7 +5,8 @@ import torchvision
 # from torchlibrosa.stft import Spectrogram, LogmelFilterBank
 from torchlibrosa.augmentation import SpecAugmentation
 from conformer import ConformerBlock
-# from torchinfo import summary
+from torchinfo import summary
+# from torch.utils.tensorboard import SummaryWriter
 # from efficientnet_pytorch import EfficientNet
 
 
@@ -268,13 +269,19 @@ class CRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    batch_audio = torch.empty(32, 3, 32, 81).uniform_(-1, 1)
+    batch_audio = torch.empty(1, 1, 32, 81).uniform_(-1, 1)
 
-    # model = ConformerModel().cuda()
-    # model = GRUModel().cuda()
-    model = ResNet('resnet18')
-    # model = get_efficientnet('b0').cuda()
-    # model = CRNN().cuda()
-    # summary(model, input=(1, 1, 22050*1))
-    print(model(batch_audio).shape)
-    print(model(batch_audio)[0])
+    model = ConformerModel().cpu()
+    summary(model, input=(1, 1, 32, 81))
+
+    model = GRUModel().cpu()
+    summary(model, input=(1, 1, 32, 81))
+
+    model = ResNet('resnet18').cpu()
+    summary(model, input=(1, 1, 32, 81))
+
+    # print(model(batch_audio).shape)
+
+    # writer = SummaryWriter(log_dir='./models')
+    # writer.add_graph(model, batch_audio)
+    # writer.close()
